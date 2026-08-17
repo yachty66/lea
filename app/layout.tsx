@@ -1,0 +1,27 @@
+import type { Metadata } from "next";
+import { Instrument_Sans, Instrument_Serif } from "next/font/google";
+import "./globals.css";
+
+const sans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const serif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-serif",
+});
+
+export const metadata: Metadata = {
+  title: "Lea · Berlin",
+  description: "schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="de">
+      <body className={`${sans.variable} ${serif.variable}`}>{children}</body>
+    </html>
+  );
+}
