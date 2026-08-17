@@ -111,6 +111,7 @@ img {
   font-size: 15px;
   line-height: 1.35;
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .bubble.in {
@@ -143,11 +144,12 @@ img {
   border-radius: 999px;
   padding: 0 16px;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   color: #fff;
   background: rgba(0, 0, 0, 0.42);
   outline: none;
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .chat-compose input::placeholder {

@@ -177,7 +177,7 @@ export default function Home() {
               {locked && !user && (
                 <div className="paywall">
                   <p>lea wartet noch.</p>
-                  <p className="paywall-sub">weiter schreiben — mit google, dann kennt sie dich.</p>
+                  <p className="paywall-sub">weiter schreiben: mit google, dann kennt sie dich.</p>
                   <button type="button" className="btn btn-light" onClick={signIn} disabled={signingIn}>
                     <GoogleMark />
                     {signingIn ? "redirecting…" : "mit google weiter"}

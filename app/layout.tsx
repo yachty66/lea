@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
@@ -12,6 +12,13 @@ const serif = Instrument_Serif({
   weight: "400",
   variable: "--font-serif",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#050505",
+};
 
 export const metadata: Metadata = {
   title: "Lea · Berlin",
