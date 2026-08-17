@@ -149,7 +149,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="hero-chat">
+            <div className={`hero-chat${locked && !user ? " locked" : ""}`}>
               <div className="chat-log" ref={logRef}>
                 {bubbles.map((bubble) => (
                   <div key={bubble.id} className={`bubble ${bubble.who}`}>
