@@ -32,6 +32,13 @@ const REPLIES = [
   "ich koch gerade für vier. bist du hungrig?",
 ];
 
+const PHOTOS = [
+  { src: "/images/cafe.jpg", alt: "Lea beim Kaffee" },
+  { src: "/images/lake.jpg", alt: "Lea am See" },
+  { src: "/images/kitchen.jpg", alt: "Lea in der Küche" },
+  { src: "/images/bar.jpg", alt: "Lea an der Bar" },
+];
+
 function sessionUser(data: unknown): User | null {
   const anyData = data as { user?: User; session?: { user?: User } } | null;
   return anyData?.user ?? anyData?.session?.user ?? null;
@@ -44,11 +51,21 @@ export default function Chat() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
+  const [photo, setPhoto] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
   const lastReply = useRef(-1);
 
   useEffect(() => {
+    if (
+      process.env.NODE_ENV === "development" &&
+      new URLSearchParams(window.location.search).has("preview")
+    ) {
+      setUser({ id: "preview" });
+      setMsgs([{ id: 0, who: "in", text: OPENER }]);
+      setReady(true);
+      return;
+    }
     authClient
       .getSession()
       .then(({ data }) => {
@@ -72,7 +89,7 @@ export default function Chat() {
   }, [router]);
 
   useEffect(() => {
-    if (user && msgs.length) {
+    if (user && user.id !== "preview" && msgs.length) {
       window.localStorage.setItem(`lea-chat-${user.id}`, JSON.stringify(msgs));
     }
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
@@ -105,47 +122,90 @@ export default function Chat() {
 
   if (!ready) {
     return (
-      <div className="chat-page">
+      <div className="chat-shell">
         <p className="chat-loading">lea kommt gleich…</p>
       </div>
     );
   }
 
   return (
-    <div className="chat-page">
-      <header className="chat-top">
-        <img src="/images/cafe.jpg" alt="Lea" className="chat-avatar" />
-        <div className="chat-who">
-          <p className="chat-name">Lea</p>
-          <p className="chat-status">online</p>
-        </div>
-        <button type="button" className="chat-out" onClick={signOut}>
-          raus
-        </button>
-      </header>
-
-      <div className="chat-main" ref={logRef}>
-        {msgs.map((msg) => (
-          <div key={msg.id} className={`bubble ${msg.who}`}>
-            {msg.text}
+    <div className="chat-shell">
+      <div className="chat-page">
+        <header className="chat-top">
+          <img src="/images/cafe.jpg" alt="Lea" className="chat-avatar" />
+          <div className="chat-who">
+            <p className="chat-name">Lea</p>
+            <p className="chat-status">online</p>
           </div>
-        ))}
-        {typing && <div className="bubble in typing">•••</div>}
+          <button type="button" className="chat-out" onClick={signOut}>
+            raus
+          </button>
+        </header>
+
+        <div className="chat-main" ref={logRef}>
+          {msgs.map((msg) => (
+            <div key={msg.id} className={`bubble ${msg.who}`}>
+              {msg.text}
+            </div>
+          ))}
+          {typing && <div className="bubble in typing">•••</div>}
+        </div>
+
+        <form className="chat-compose chat-bottom" onSubmit={onSubmit}>
+          <input
+            type="text"
+            autoComplete="off"
+            placeholder="Nachricht schreiben…"
+            maxLength={500}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <button type="submit" aria-label="Senden">
+            ↑
+          </button>
+        </form>
       </div>
 
-      <form className="chat-compose chat-bottom" onSubmit={onSubmit}>
-        <input
-          type="text"
-          autoComplete="off"
-          placeholder="Nachricht schreiben…"
-          maxLength={500}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <button type="submit" aria-label="Senden">
-          ↑
-        </button>
-      </form>
+      <aside className="chat-side">
+        <div className="side-slider">
+          <img src={PHOTOS[photo].src} alt={PHOTOS[photo].alt} />
+          <button
+            type="button"
+            className="side-nav side-prev"
+            aria-label="Vorheriges Foto"
+            onClick={() => setPhoto((photo + PHOTOS.length - 1) % PHOTOS.length)}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="side-nav side-next"
+            aria-label="Nächstes Foto"
+            onClick={() => setPhoto((photo + 1) % PHOTOS.length)}
+          >
+            ›
+          </button>
+          <div className="side-dots">
+            {PHOTOS.map((p, i) => (
+              <button
+                type="button"
+                key={p.src}
+                className={i === photo ? "on" : ""}
+                aria-label={`Foto ${i + 1}`}
+                onClick={() => setPhoto(i)}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="side-info">
+          <p className="side-meta">23 · Berlin</p>
+          <h2>Lea</h2>
+          <p className="side-bio">
+            schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar. wohnt in einer
+            2er-wg in friedrichshain und tut so als würde sie noch studieren.
+          </p>
+        </div>
+      </aside>
     </div>
   );
 }

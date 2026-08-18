@@ -244,12 +244,22 @@ img {
   font-size: 14px;
 }
 
-.chat-page {
+.chat-shell {
   height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+.chat-page {
+  flex: 1;
+  min-width: 0;
   max-width: 640px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
+}
+
+.chat-side {
+  display: none;
 }
 
 .chat-loading {
@@ -315,6 +325,125 @@ img {
 .chat-bottom {
   padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
+}
+
+@media (min-width: 1024px) {
+  .chat-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    gap: 32px;
+    padding: 24px 24px 0;
+  }
+
+  .chat-page {
+    max-width: none;
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    overflow: hidden;
+  }
+
+  .chat-side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 360px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+
+  .side-slider {
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+  }
+
+  .side-slider img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+
+  .side-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(5, 5, 5, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding-bottom: 3px;
+  }
+
+  .side-nav:hover {
+    background: rgba(5, 5, 5, 0.8);
+  }
+
+  .side-prev {
+    left: 12px;
+  }
+
+  .side-next {
+    right: 12px;
+  }
+
+  .side-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .side-dots button {
+    width: 7px;
+    height: 7px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .side-dots button.on {
+    background: #fff;
+  }
+
+  .side-meta {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-bottom: 4px;
+  }
+
+  .side-info h2 {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .side-bio {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+    opacity: 0.85;
+  }
 }
 
 .week,
