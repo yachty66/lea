@@ -322,6 +322,13 @@ img {
   background: #1b1815;
 }
 
+.bubble-photo {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
 .chat-bottom {
   padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);

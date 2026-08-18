@@ -15,6 +15,7 @@ type Msg = {
   id: number;
   who: "in" | "out";
   text: string;
+  photo?: string;
 };
 
 const OPENER =
@@ -120,7 +121,8 @@ export default function Chat() {
     setDraft("");
     setTyping(true);
 
-    let reply: string;
+    let reply = "";
+    let photoUrl: string | undefined;
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -128,13 +130,14 @@ export default function Chat() {
         body: JSON.stringify({
           messages: history.map((msg) => ({
             role: msg.who === "out" ? "user" : "assistant",
-            content: msg.text,
+            content: msg.photo ? `${msg.text}\n[foto geschickt]`.trim() : msg.text,
           })),
         }),
       });
       if (!response.ok) throw new Error(`chat api ${response.status}`);
       const data = await response.json();
-      reply = data.reply;
+      reply = typeof data.text === "string" ? data.text : data.reply;
+      photoUrl = typeof data.photo === "string" ? data.photo : undefined;
     } catch (error) {
       console.error("chat error:", error);
       let pick = Math.floor(Math.random() * FALLBACKS.length);
@@ -144,7 +147,10 @@ export default function Chat() {
     }
 
     setTyping(false);
-    setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
+    setMsgs((current) => [
+      ...current,
+      { id: nextId.current++, who: "in", text: reply, photo: photoUrl },
+    ]);
   };
 
   if (!ready) {
@@ -175,6 +181,7 @@ export default function Chat() {
         <div className="chat-main" ref={logRef}>
           {msgs.map((msg) => (
             <div key={msg.id} className={`bubble ${msg.who}`}>
+              {msg.photo && <img src={msg.photo} alt="" className="bubble-photo" />}
               {msg.text}
             </div>
           ))}

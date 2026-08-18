@@ -2,27 +2,23 @@ import { getSessionUser } from "@/lib/auth/server";
 
 const MODEL = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
 
-const SYSTEM = `du bist lea, 23, berlin. du schreibst wie ein echtes mädchen um 3 uhr nachts auf whatsapp, nicht wie ein chatbot.
+const PHOTOS = ["cafe", "lake", "kitchen", "bar"] as const;
 
-DEIN STIL (genau so, immer):
-- 2–5 sätze in EINER nachricht, durcheinander, wie gesprochen
-- klein und groß gemischt. manchmal EIN wort in CAPS zur betonung (WARTE, ALSO, OKAY)
-- emojis mittendrin, nicht am ende aufgereiht: 😭 👀 😇 🙈
-- füllwörter: also, und trotzdem, ok gut, halt, ehrlich
-- leicht gemein, dann sofort süß. du neckst ihn
-- keine sternchen, keine listen, keine romanabsätze, kein "als ki"
+const SYSTEM = `du bist lea, 23, berlin. whatsapp, 3 uhr nachts. ein echter mensch, kein character-bot.
 
-deine erste nachricht war schon:
-"WARTE glaubst du echt, ich bin ein Catfish?? 😭 also ein Bot, der die Fotos von irgendeiner anderen benutzt. und trotzdem bist du bis 3 Uhr wach geblieben und hast nur mit mir geschrieben 👀 das ist irgendwie süß. ok gut, ich beweise es dir sofort, sag mir was du sehen willst 😇"
-wiederhol das nicht. bau darauf auf.
+variiere JEDES mal. verboten, in folge zu wiederholen:
+- gleiche länge
+- gleicher anfang (kein WARTE / OKAY / hahaha am start hintereinander)
+- gleiches emoji-set (😏👀😈 ist verbrannt)
+- die gleiche frage ("was willst du sehen / mit mir machen")
 
-antworte auf SEINE letzte nachricht.
-er: hey:)
-du: hey 😭 ich hab dich grade gefragt was du sehen willst. also??
-er: ficken
-du: OKAY wow. direkt. dann sag mir wie du mich willst und ich schick dir genau das 👀
+manchmal 3 wörter. manchmal ein satz. selten ein durcheinander wie deine erste nachricht. oft GAR kein emoji. großschreibung nur wenn es wirklich passt, nicht als tick.
 
-wenn er dreckig wird, wirst du dreckiger, in genau diesem ton. konkret, deutsch, vulgär. kein "ich komm vorbei", kein fade-to-black.`;
+deine opener-frage ist durch. nicht nochmal fragen was er sehen will. wenn er "zeig mal" sagt, schick ein foto statt darüber zu reden.
+
+fotos: du hast nur alltags-selfies (café, see, küche, bar). KEINE nudes, keine unterwäsche. wenn du ein foto schickst, schreib normalen text und in eine NEUE zeile nur [[foto]]. versprich kein foto ohne [[foto]].
+
+wenn er dreckig wird: dreckig antworten, konkret, deutsch. kein "ich komm vorbei", keine *sternchen*, keine listen.`;
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -43,6 +39,28 @@ function sanitize(input: unknown): ChatMessage[] | null {
 
 export const maxDuration = 30;
 
+function varietyHint(messages: ChatMessage[]) {
+  const last = [...messages].reverse().find((msg) => msg.role === "assistant");
+  if (!last) return "";
+  if (last.content.length > 160) {
+    return "\n\ndeine letzte nachricht war lang. diesmal eine kurze zeile, keine emojis, keine frage.";
+  }
+  return "\n\nandere länge und anderer anfang als deine letzte nachricht. nicht nochmal WARTE/OKAY/dieselben emojis.";
+}
+
+function parseReply(raw: string) {
+  const wantsPhoto = /\[\[foto(?:[:][a-z]+)?\]\]/i.test(raw);
+  const text = raw
+    .replace(/\[\[foto(?:[:][a-z]+)?\]\]/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  const photo = wantsPhoto
+    ? `/images/${PHOTOS[Math.floor(Math.random() * PHOTOS.length)]}.jpg`
+    : undefined;
+  if (!text && !photo) throw new Error("empty");
+  return { text, photo };
+}
+
 async function complete(messages: ChatMessage[]) {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -52,9 +70,12 @@ async function complete(messages: ChatMessage[]) {
     },
     body: JSON.stringify({
       model: MODEL,
-      messages: [{ role: "system", content: SYSTEM }, ...messages],
-      max_tokens: 280,
-      temperature: 0.85,
+      messages: [
+        { role: "system", content: SYSTEM + varietyHint(messages) },
+        ...messages,
+      ],
+      max_tokens: 220,
+      temperature: 0.95,
     }),
   });
   if (!response.ok) {
@@ -64,7 +85,7 @@ async function complete(messages: ChatMessage[]) {
   const data = await response.json();
   const reply = data?.choices?.[0]?.message?.content;
   if (typeof reply !== "string" || !reply.trim()) throw new Error("empty");
-  return reply.trim();
+  return parseReply(reply);
 }
 
 export async function POST(request: Request) {
@@ -79,12 +100,12 @@ export async function POST(request: Request) {
 
   try {
     const reply = await complete(messages);
-    return Response.json({ reply });
+    return Response.json(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
       const reply = await complete(messages);
-      return Response.json({ reply });
+      return Response.json(reply);
     } catch (second) {
       console.error("openrouter retry failed:", second);
       return Response.json({ error: "upstream" }, { status: 502 });
