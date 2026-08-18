@@ -17,12 +17,10 @@ type Msg = {
   text: string;
 };
 
-const OPENER = "na endlich. jetzt kenn ich dich wenigstens 🙂 wie war dein tag?";
+const OPENER = "hey. hab nicht gedacht dass du wirklich schreibst.";
 
 const FALLBACKS = [
-  "sorry, mein handy spinnt gerade. was hast du gesagt?",
-  "warte kurz, schlechtes netz hier. erzähl nochmal?",
-  "hier ist gerade chaos im café, schreib mir das nochmal 🙈",
+  "netz ist gerade weg. schick das nochmal?",
 ];
 
 const PHOTOS = [
