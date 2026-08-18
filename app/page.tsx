@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { authClient } from "@/lib/auth/client";
 import card from "@/lea.card.json";
 
@@ -55,7 +56,12 @@ export default function Home() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [bubbles]);
 
+  useEffect(() => {
+    if (locked) posthog.capture("paywall_shown");
+  }, [locked]);
+
   const signIn = async () => {
+    posthog.capture("signin_clicked", { from_paywall: locked });
     setSigningIn(true);
     try {
       await authClient.signIn.social({

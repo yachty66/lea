@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { authClient } from "@/lib/auth/client";
 import card from "@/lea.card.json";
 
@@ -70,6 +71,7 @@ export default function Chat() {
           return;
         }
         setUser(u);
+        posthog.identify(u.id, { email: u.email, name: u.name });
         const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
         if (saved) {
           const parsed = JSON.parse(saved) as Msg[];
@@ -104,6 +106,7 @@ export default function Chat() {
     nextId.current = 1;
     setTyping(false);
     setMsgs([{ id: 0, who: "in", text: OPENER }]);
+    posthog.capture("chat_reset");
   };
 
   const signOut = async () => {
@@ -121,8 +124,11 @@ export default function Chat() {
     setDraft("");
     setTyping(true);
 
+    posthog.capture("message_sent", { length: text.length, history_length: history.length });
+
     let reply = "";
     let photoUrl: string | undefined;
+    let failed = false;
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -140,11 +146,14 @@ export default function Chat() {
       photoUrl = typeof data.photo === "string" ? data.photo : undefined;
     } catch (error) {
       console.error("chat error:", error);
+      failed = true;
       let pick = Math.floor(Math.random() * FALLBACKS.length);
       if (pick === lastReply.current) pick = (pick + 1) % FALLBACKS.length;
       lastReply.current = pick;
       reply = FALLBACKS[pick];
     }
+
+    posthog.capture("reply_received", { with_photo: Boolean(photoUrl), fallback: failed });
 
     setTyping(false);
     setMsgs((current) => [
