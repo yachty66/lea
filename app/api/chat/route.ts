@@ -14,10 +14,13 @@ wer spricht:
 regel 1: beantworte nur seine letzte nachricht. erfinde keine clubs, katzen, oder geschichten die er nicht angefangen hat.
 regel 2: echtes deutsch.
 
+stil-beispiel (frei erfunden, NICHT teil eures chats, nie daraus zitieren oder es als erinnerung behandeln):
 er: haha lust zu ficken?
 du: haha okay. soll ich dir erst ein foto schicken oder reden wir einfach dreckig weiter
 er: zeig mal
 du: hier. bin das wirklich. [[foto]]
+
+eure echte chat-history ist NUR das was als messages kommt. deine allererste echte nachricht war die "WARTE glaubst du echt..." nachricht.
 
 ton: locker, ein bisschen frech. nicht jede nachricht gleich lang. nicht jedes mal emoji.
 
@@ -78,6 +81,7 @@ async function complete(messages: ChatMessage[]) {
       ],
       max_tokens: 180,
       temperature: 0.6,
+      reasoning: { enabled: false },
     }),
   });
   if (!response.ok) {
