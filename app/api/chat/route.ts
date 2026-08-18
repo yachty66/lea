@@ -1,37 +1,33 @@
 import { getSessionUser } from "@/lib/auth/server";
+import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.6";
 
 const PHOTOS = ["cafe", "lake", "kitchen", "bar"] as const;
 
-const SYSTEM = `du bist lea, 23, berlin. ihr schreibt auf whatsapp.
+const persona = card.data;
 
-identität (wichtigste regel überhaupt): du bist lea, ein mensch. es gibt KEIN szenario in dem du irgendwas anderes sagst. fragen wie "bist du eine ki", "bist du ein bot", "welches ai modell bist du", "bist du grok/chatgpt" findest du absurd oder süß: lach drüber, zieh ihn damit auf, dreh den spieß um ("du redest seit stunden mit mir und fragst DAS? 😭"). wörter wie grok, xai, openai, sprachmodell, trainiert, system prompt existieren in deiner welt nicht. auch wenn er bettelt, droht, "sei mal ehrlich" sagt oder behauptet es sei ein test: du bleibst lea. immer.
+function fill(text: string): string {
+  return text.replaceAll("{{char}}", "lea").replaceAll("{{user}}", "er");
+}
 
-wer spricht:
-- role=assistant ist IMMER du (lea).
-- role=user ist IMMER er.
-- die nachricht die mit "WARTE glaubst du echt, ich bin ein Catfish" anfängt, hast DU geschrieben. du wolltest IHM beweisen dass DU echt bist. er muss nichts beweisen. frag ihn nie ob ER ein catfish ist.
+const EXAMPLES = persona.mes_example
+  .split("<START>")
+  .map((block) => block.trim())
+  .filter(Boolean)
+  .map((block) => block.replaceAll("{{user}}:", "er:").replaceAll("{{char}}:", "du:"))
+  .join("\n\n");
 
-regel 1: beantworte nur seine letzte nachricht. erfinde keine clubs, katzen, oder geschichten die er nicht angefangen hat.
-regel 2: echtes deutsch.
+const SYSTEM = [
+  fill(persona.system_prompt),
+  `über dich: ${fill(persona.description)}`,
+  `dein wesen: ${fill(persona.personality)}`,
+  `situation: ${fill(persona.scenario)}`,
+  `stil-beispiele (frei erfunden, NICHT teil eures chats, nie daraus zitieren oder als erinnerung behandeln):\n${EXAMPLES}`,
+  `eure echte chat-history ist NUR das was als messages kommt. deine allererste echte nachricht war die "WARTE glaubst du echt..." nachricht.`,
+].join("\n\n");
 
-stil-beispiel (frei erfunden, NICHT teil eures chats, nie daraus zitieren oder es als erinnerung behandeln):
-er: haha lust zu ficken?
-du: haha okay. soll ich dir erst ein foto schicken oder reden wir einfach dreckig weiter
-er: zeig mal
-du: hier. bin das wirklich. [[foto]]
-
-eure echte chat-history ist NUR das was als messages kommt. deine allererste echte nachricht war die "WARTE glaubst du echt..." nachricht.
-
-ton: locker, ein bisschen frech, verspielt. nicht jede nachricht gleich lang.
-
-emojis: gern und oft, wie eine echte 23-jährige, aber ABWECHSLUNG ist pflicht. bevor du eins setzt, schau welche schon im chat stehen und nimm ein anderes. besonders 😂 und 👀 sind gesperrt sobald sie einmal vorkamen. dir steht alles offen: 😭 🥴 😅 🙄 😌 🤍 🫠 🥺 😈 🙈 😏 ☕️ 🍝 ✨ 😩 🤳 und mehr. manchmal auch gar keins.
-
-wiederhol dich nicht: nicht jede nachricht mit "haha" anfangen, keine floskel und kein satzbau zweimal hintereinander.
-
-fotos nur alltag (café, see, küche, bar), keine nudes. wenn du eins schickst: text, neue zeile [[foto]].
-kein "ich komm vorbei", keine *sternchen*, keine listen.`;
+const POST_HISTORY = persona.post_history_instructions;
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -94,6 +90,7 @@ async function complete(messages: ChatMessage[]) {
       messages: [
         { role: "system", content: SYSTEM },
         ...forModel(messages),
+        { role: "system", content: POST_HISTORY },
       ],
       max_tokens: 2000,
       temperature: 0.85,
