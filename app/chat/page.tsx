@@ -19,17 +19,10 @@ type Msg = {
 
 const OPENER = "na endlich. jetzt kenn ich dich wenigstens 🙂 wie war dein tag?";
 
-const REPLIES = [
-  "hahah okay das merk ich mir.",
-  "warte, erzähl mal mehr. ich hab zeit, die soße muss eh noch köcheln.",
-  "ich sitz gerade am fenster und alle draußen sehen aus als hätten sie es eilig. wohin eigentlich?",
-  "du klingst wie jemand der zu wenig schläft. ich auch.",
-  "okay und was machst du wenn du nicht gerade mit mir schreibst?",
-  "ich hab heute drei cappuccini falsch gemacht. der vierte war perfekt. so ungefähr läuft mein leben.",
-  "das würde ich gern sehen. foto oder es ist nicht passiert.",
-  "freitag bin ich wieder an der bar. nur so gesagt.",
-  "mhm. und jetzt die ehrliche version bitte.",
-  "ich koch gerade für vier. bist du hungrig?",
+const FALLBACKS = [
+  "sorry, mein handy spinnt gerade. was hast du gesagt?",
+  "warte kurz, schlechtes netz hier. erzähl nochmal?",
+  "hier ist gerade chaos im café, schreib mir das nochmal 🙈",
 ];
 
 const PHOTOS = [
@@ -100,24 +93,41 @@ export default function Chat() {
     router.replace("/");
   };
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
     if (!text || typing) return;
 
-    setMsgs((current) => [...current, { id: nextId.current++, who: "out", text }]);
+    const history = [...msgs, { id: nextId.current++, who: "out" as const, text }];
+    setMsgs(history);
     setDraft("");
     setTyping(true);
 
-    let pick = Math.floor(Math.random() * REPLIES.length);
-    if (pick === lastReply.current) pick = (pick + 1) % REPLIES.length;
-    lastReply.current = pick;
-    const reply = REPLIES[pick];
+    let reply: string;
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history.map((msg) => ({
+            role: msg.who === "out" ? "user" : "assistant",
+            content: msg.text,
+          })),
+        }),
+      });
+      if (!response.ok) throw new Error(`chat api ${response.status}`);
+      const data = await response.json();
+      reply = data.reply;
+    } catch (error) {
+      console.error("chat error:", error);
+      let pick = Math.floor(Math.random() * FALLBACKS.length);
+      if (pick === lastReply.current) pick = (pick + 1) % FALLBACKS.length;
+      lastReply.current = pick;
+      reply = FALLBACKS[pick];
+    }
 
-    window.setTimeout(() => {
-      setTyping(false);
-      setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
-    }, 900 + Math.random() * 1200);
+    setTyping(false);
+    setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
   };
 
   if (!ready) {
