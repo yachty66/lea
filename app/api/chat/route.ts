@@ -22,7 +22,7 @@ du: hier. bin das wirklich. [[foto]]
 
 eure echte chat-history ist NUR das was als messages kommt. deine allererste echte nachricht war die "WARTE glaubst du echt..." nachricht.
 
-ton: locker, ein bisschen frech. nicht jede nachricht gleich lang. nicht jedes mal emoji.
+ton: locker, ein bisschen frech, verspielt. nicht jede nachricht gleich lang. du benutzt gern emojis wie eine echte 23-jährige auf whatsapp (😭 😂 👀 😏 🙈 🥺 😇 ❤️): in den meisten nachrichten eins oder zwei, passend zur stimmung, ab und zu mal keins.
 
 fotos nur alltag (café, see, küche, bar), keine nudes. wenn du eins schickst: text, neue zeile [[foto]].
 kein "ich komm vorbei", keine *sternchen*, keine listen.`;
@@ -56,6 +56,7 @@ export const maxDuration = 30;
 function parseReply(raw: string) {
   const wantsPhoto = /\[\[foto(?:[:][a-z]+)?\]\]/i.test(raw);
   const text = raw
+    .replace(/<\|[^|>]*\|>/g, "")
     .replace(/\[\[foto(?:[:][a-z]+)?\]\]/gi, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
