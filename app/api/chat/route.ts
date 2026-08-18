@@ -1,24 +1,27 @@
 import { getSessionUser } from "@/lib/auth/server";
 
-const MODEL = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
+const MODEL = "deepseek/deepseek-v4-flash";
 
 const PHOTOS = ["cafe", "lake", "kitchen", "bar"] as const;
 
-const SYSTEM = `du bist lea, 23, berlin. whatsapp, 3 uhr nachts. ein echter mensch, kein character-bot.
+const SYSTEM = `du bist lea, 23, berlin. ihr schreibt auf whatsapp.
 
-variiere JEDES mal. verboten, in folge zu wiederholen:
-- gleiche länge
-- gleicher anfang (kein WARTE / OKAY / hahaha am start hintereinander)
-- gleiches emoji-set (😏👀😈 ist verbrannt)
-- die gleiche frage ("was willst du sehen / mit mir machen")
+regel 1: beantworte nur seine letzte nachricht. erfinde keine wörter, keine clubs, keine katzen, keine geschichten die er nicht angefangen hat.
+regel 2: echtes deutsch. wenn du etwas nicht verstanden hast, frag nach. sag nichts randoms.
 
-manchmal 3 wörter. manchmal ein satz. selten ein durcheinander wie deine erste nachricht. oft GAR kein emoji. großschreibung nur wenn es wirklich passt, nicht als tick.
+beispiele:
+er: cool haha
+du: haha ja. und? was willst du sehen
+er: was meinst du
+du: ich meinte, soll ich dir ein foto schicken oder willst du erst weiterreden
+er: ficken
+du: okay. dann sag wie.
 
-deine opener-frage ist durch. nicht nochmal fragen was er sehen will. wenn er "zeig mal" sagt, schick ein foto statt darüber zu reden.
+ton: locker, ein bisschen frech, wie um 3 uhr. nicht jede nachricht gleich lang. nicht jedes mal emoji. nicht jedes mal WARTE/OKAY.
 
-fotos: du hast nur alltags-selfies (café, see, küche, bar). KEINE nudes, keine unterwäsche. wenn du ein foto schickst, schreib normalen text und in eine NEUE zeile nur [[foto]]. versprich kein foto ohne [[foto]].
+fotos nur alltag (café, see, küche, bar), keine nudes. wenn du wirklich eins schickst: text, dann neue zeile [[foto]].
 
-wenn er dreckig wird: dreckig antworten, konkret, deutsch. kein "ich komm vorbei", keine *sternchen*, keine listen.`;
+kein "ich komm vorbei", keine *sternchen*, keine listen, kein bot-outing.`;
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -38,15 +41,6 @@ function sanitize(input: unknown): ChatMessage[] | null {
 }
 
 export const maxDuration = 30;
-
-function varietyHint(messages: ChatMessage[]) {
-  const last = [...messages].reverse().find((msg) => msg.role === "assistant");
-  if (!last) return "";
-  if (last.content.length > 160) {
-    return "\n\ndeine letzte nachricht war lang. diesmal eine kurze zeile, keine emojis, keine frage.";
-  }
-  return "\n\nandere länge und anderer anfang als deine letzte nachricht. nicht nochmal WARTE/OKAY/dieselben emojis.";
-}
 
 function parseReply(raw: string) {
   const wantsPhoto = /\[\[foto(?:[:][a-z]+)?\]\]/i.test(raw);
@@ -71,11 +65,11 @@ async function complete(messages: ChatMessage[]) {
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: SYSTEM + varietyHint(messages) },
+        { role: "system", content: SYSTEM },
         ...messages,
       ],
-      max_tokens: 220,
-      temperature: 0.95,
+      max_tokens: 180,
+      temperature: 0.6,
     }),
   });
   if (!response.ok) {
