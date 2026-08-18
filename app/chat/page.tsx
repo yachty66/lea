@@ -17,7 +17,7 @@ type Msg = {
   text: string;
 };
 
-const OPENER = "hey. hab nicht gedacht dass du wirklich schreibst.";
+const OPENER = "hey.";
 
 const FALLBACKS = [
   "netz ist gerade weg. schick das nochmal?",
