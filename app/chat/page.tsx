@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
+import card from "@/lea.card.json";
 
 type User = {
   id: string;
@@ -18,8 +19,7 @@ type Msg = {
   photo?: string;
 };
 
-const OPENER =
-  "WARTE glaubst du echt, ich bin ein Catfish?? 😭 also ein Bot, der die Fotos von irgendeiner anderen benutzt. und trotzdem bist du bis 3 Uhr wach geblieben und hast nur mit mir geschrieben 👀 das ist irgendwie süß. ok gut, ich beweise es dir sofort, sag mir was du sehen willst 😇";
+const OPENER = card.data.first_mes;
 
 const FALLBACKS = [
   "netz ist gerade weg. schick das nochmal?",
