@@ -244,6 +244,79 @@ img {
   font-size: 14px;
 }
 
+.chat-page {
+  height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-loading {
+  margin: auto;
+  color: var(--mute);
+}
+
+.chat-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 62% 20%;
+}
+
+.chat-who {
+  flex: 1;
+}
+
+.chat-name {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.chat-status {
+  font-size: 12px;
+  color: #7ed492;
+}
+
+.chat-out {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--mute);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chat-main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.chat-page .bubble.in {
+  background: #1b1815;
+}
+
+.chat-bottom {
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+
 .week,
 .bio {
   padding: 72px 20px;

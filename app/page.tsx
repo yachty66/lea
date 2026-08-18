@@ -58,7 +58,7 @@ export default function Home() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: "/chat",
       });
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -150,6 +150,12 @@ export default function Home() {
             </div>
 
             <div className={`hero-chat${locked && !user ? " locked" : ""}`}>
+              {user ? (
+                <a className="btn btn-light" href="/chat">
+                  weiter mit lea schreiben
+                </a>
+              ) : (
+                <>
               <div className="chat-log" ref={logRef}>
                 {bubbles.map((bubble) => (
                   <div key={bubble.id} className={`bubble ${bubble.who}`}>
@@ -174,7 +180,7 @@ export default function Home() {
                 </button>
               </form>
 
-              {locked && !user && (
+              {locked && (
                 <div className="paywall">
                   <p>lea wartet noch.</p>
                   <p className="paywall-sub">weiter schreiben: mit google, dann kennt sie dich.</p>
@@ -183,6 +189,8 @@ export default function Home() {
                     {signingIn ? "redirecting…" : "mit google weiter"}
                   </button>
                 </div>
+              )}
+                </>
               )}
             </div>
 
