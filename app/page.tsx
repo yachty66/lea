@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth/client";
+import card from "@/lea.card.json";
 
 type User = {
   id: string;
@@ -16,10 +17,12 @@ type Bubble = {
   text: string;
 };
 
+const OPENER = card.data.first_mes;
+
 const REPLIES = [
-  "hahah ja ich. war viel zu lang in der sonne, bin komplett rot 😭",
-  "was machst du gerade? ich koch irgendwie pasta für vier obwohl ich alleine bin",
-  "bleib einfach. ich langweil mich sonst nur an der bar.",
+  "haha ok du glaubst mir nicht 🙈 ich sitz gerade ganz normal in meiner küche in friedrichshain und koch pasta für vier. alleine.",
+  "siehst du, so schnell antwortet kein fake. und jetzt du: was machst du gerade wirklich?",
+  "warte, ich zeig dir gleich mehr. aber nicht hier, hier liest doch jeder mit 🙄",
 ];
 
 function sessionUser(data: unknown): User | null {
@@ -32,7 +35,7 @@ export default function Home() {
   const [authReady, setAuthReady] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [bubbles, setBubbles] = useState<Bubble[]>([
-    { id: 0, who: "in", text: "hey, bist du das? bin gerade vom see zurück 🌅" },
+    { id: 0, who: "in", text: OPENER },
   ]);
   const [draft, setDraft] = useState("");
   const [sent, setSent] = useState(0);
