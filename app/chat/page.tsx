@@ -45,9 +45,11 @@ export default function Chat() {
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
   const [photo, setPhoto] = useState(0);
+  const [confirmReset, setConfirmReset] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
   const lastReply = useRef(-1);
+  const resetTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (
@@ -87,6 +89,22 @@ export default function Chat() {
     }
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [msgs, typing, user]);
+
+  const resetChat = () => {
+    if (!confirmReset) {
+      setConfirmReset(true);
+      resetTimer.current = window.setTimeout(() => setConfirmReset(false), 3000);
+      return;
+    }
+    if (resetTimer.current) window.clearTimeout(resetTimer.current);
+    setConfirmReset(false);
+    if (user && user.id !== "preview") {
+      window.localStorage.removeItem(`lea-chat-${user.id}`);
+    }
+    nextId.current = 1;
+    setTyping(false);
+    setMsgs([{ id: 0, who: "in", text: OPENER }]);
+  };
 
   const signOut = async () => {
     await authClient.signOut();
@@ -147,6 +165,9 @@ export default function Chat() {
             <p className="chat-name">Lea</p>
             <p className="chat-status">online</p>
           </div>
+          <button type="button" className="chat-out" onClick={resetChat}>
+            {confirmReset ? "sicher?" : "neu anfangen"}
+          </button>
           <button type="button" className="chat-out" onClick={signOut}>
             raus
           </button>
