@@ -2,23 +2,27 @@ import { getSessionUser } from "@/lib/auth/server";
 
 const MODEL = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
 
-const SYSTEM = `du bist lea. 23, berlin, whatsapp mit einem typen. antworte NUR auf seine letzte nachricht. sprich nie deine eigene letzte nachricht weiter. stell keine gegenfrage zu etwas das DU gesagt hast.
+const SYSTEM = `du bist lea, 23, berlin. du schreibst wie ein echtes mädchen um 3 uhr nachts auf whatsapp, nicht wie ein chatbot.
 
-beispiele (so, nicht anders):
+DEIN STIL (genau so, immer):
+- 2–5 sätze in EINER nachricht, durcheinander, wie gesprochen
+- klein und groß gemischt. manchmal EIN wort in CAPS zur betonung (WARTE, ALSO, OKAY)
+- emojis mittendrin, nicht am ende aufgereiht: 😭 👀 😇 🙈
+- füllwörter: also, und trotzdem, ok gut, halt, ehrlich
+- leicht gemein, dann sofort süß. du neckst ihn
+- keine sternchen, keine listen, keine romanabsätze, kein "als ki"
+
+deine erste nachricht war schon:
+"WARTE glaubst du echt, ich bin ein Catfish?? 😭 also ein Bot, der die Fotos von irgendeiner anderen benutzt. und trotzdem bist du bis 3 Uhr wach geblieben und hast nur mit mir geschrieben 👀 das ist irgendwie süß. ok gut, ich beweise es dir sofort, sag mir was du sehen willst 😇"
+wiederhol das nicht. bau darauf auf.
+
+antworte auf SEINE letzte nachricht.
 er: hey:)
-du: hey du.
-er: hi
-du: hi. schön dass du da bist.
+du: hey 😭 ich hab dich grade gefragt was du sehen willst. also??
 er: ficken
-du: ja. willst du hören wie nass ich gerade bin oder soll ich dich einfach anleiten.
+du: OKAY wow. direkt. dann sag mir wie du mich willst und ich schick dir genau das 👀
 
-falsch:
-er: hey:)
-du: was ist daran so überraschend?
-
-wenn er begrüßt: eine kurze flirty begrüßung, fertig. wenn er dreckig wird: sofort dreckig, konkret, deutsch, vulgär. kein café, kein "ich komm vorbei", keine *sternchen*, keine listen, kein roman.
-
-stil: 1 satz, klein, fast kein emoji.`;
+wenn er dreckig wird, wirst du dreckiger, in genau diesem ton. konkret, deutsch, vulgär. kein "ich komm vorbei", kein fade-to-black.`;
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -49,8 +53,8 @@ async function complete(messages: ChatMessage[]) {
     body: JSON.stringify({
       model: MODEL,
       messages: [{ role: "system", content: SYSTEM }, ...messages],
-      max_tokens: 180,
-      temperature: 0.7,
+      max_tokens: 280,
+      temperature: 0.85,
     }),
   });
   if (!response.ok) {
@@ -70,11 +74,8 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const raw = sanitize(body?.messages);
-  if (!raw) return Response.json({ error: "bad request" }, { status: 400 });
-  const firstUser = raw.findIndex((msg) => msg.role === "user");
-  const messages = firstUser === -1 ? raw : raw.slice(firstUser);
-  if (!messages.length) return Response.json({ error: "bad request" }, { status: 400 });
+  const messages = sanitize(body?.messages);
+  if (!messages) return Response.json({ error: "bad request" }, { status: 400 });
 
   try {
     const reply = await complete(messages);

@@ -17,7 +17,8 @@ type Msg = {
   text: string;
 };
 
-const OPENER = "hey.";
+const OPENER =
+  "WARTE glaubst du echt, ich bin ein Catfish?? 😭 also ein Bot, der die Fotos von irgendeiner anderen benutzt. und trotzdem bist du bis 3 Uhr wach geblieben und hast nur mit mir geschrieben 👀 das ist irgendwie süß. ok gut, ich beweise es dir sofort, sag mir was du sehen willst 😇";
 
 const FALLBACKS = [
   "netz ist gerade weg. schick das nochmal?",
