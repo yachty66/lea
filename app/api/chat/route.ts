@@ -108,15 +108,24 @@ async function complete(messages: ChatMessage[]) {
   return parseReply(reply);
 }
 
-export async function POST(request: Request) {
-  if (process.env.NODE_ENV !== "development") {
-    const user = await getSessionUser();
-    if (!user) return Response.json({ error: "unauthorized" }, { status: 401 });
-  }
+const TEASER_LIMIT = 3;
 
+export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const messages = sanitize(body?.messages);
   if (!messages) return Response.json({ error: "bad request" }, { status: 400 });
+
+  if (process.env.NODE_ENV !== "development") {
+    const user = await getSessionUser();
+    if (!user) {
+      const fromHim = messages.filter((msg) => msg.role === "user").length;
+      const withinTeaser =
+        fromHim <= TEASER_LIMIT && messages.length <= TEASER_LIMIT * 2 + 1;
+      if (!withinTeaser) {
+        return Response.json({ error: "unauthorized" }, { status: 401 });
+      }
+    }
+  }
 
   try {
     const reply = await complete(messages);

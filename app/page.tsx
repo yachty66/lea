@@ -19,11 +19,9 @@ type Bubble = {
 
 const OPENER = card.data.first_mes;
 
-const REPLIES = [
-  "haha ok du glaubst mir nicht 🙈 ich sitz gerade ganz normal in meiner küche in friedrichshain und koch pasta für vier. alleine.",
-  "siehst du, so schnell antwortet kein fake. und jetzt du: was machst du gerade wirklich?",
-  "warte, ich zeig dir gleich mehr. aber nicht hier, hier liest doch jeder mit 🙄",
-];
+const TEASER_LIMIT = 3;
+
+const FALLBACK = "netz ist gerade weg. schick das nochmal? 😅";
 
 function sessionUser(data: unknown): User | null {
   const anyData = data as { user?: User; session?: { user?: User } } | null;
@@ -40,6 +38,7 @@ export default function Home() {
   const [draft, setDraft] = useState("");
   const [sent, setSent] = useState(0);
   const [locked, setLocked] = useState(false);
+  const [typing, setTyping] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const nextId = useRef(1);
@@ -80,35 +79,51 @@ export default function Home() {
     return id;
   };
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
-    if (!text || locked) return;
-    if (!user && sent >= REPLIES.length) {
+    if (!text || locked || typing) return;
+    if (!user && sent >= TEASER_LIMIT) {
       setLocked(true);
       return;
     }
 
-    addBubble("out", text);
+    const history = [...bubbles, { id: nextId.current++, who: "out" as const, text }];
+    setBubbles(history);
     setDraft("");
-
-    if (!user && sent >= REPLIES.length) return;
-
-    const reply = REPLIES[Math.min(sent, REPLIES.length - 1)];
     const nextSent = sent + 1;
     setSent(nextSent);
+    setTyping(true);
     const typingId = addBubble("in typing", "•••");
 
-    window.setTimeout(() => {
-      setBubbles((current) =>
-        current
-          .filter((bubble) => bubble.id !== typingId)
-          .concat({ id: nextId.current++, who: "in", text: reply })
-      );
-      if (!user && nextSent >= REPLIES.length) {
-        window.setTimeout(() => setLocked(true), 700);
-      }
-    }, 850);
+    let reply = FALLBACK;
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history.map((bubble) => ({
+            role: bubble.who === "out" ? "user" : "assistant",
+            content: bubble.text,
+          })),
+        }),
+      });
+      if (!response.ok) throw new Error(`chat api ${response.status}`);
+      const data = await response.json();
+      if (typeof data.text === "string" && data.text.trim()) reply = data.text;
+    } catch (error) {
+      console.error("chat error:", error);
+    }
+
+    setTyping(false);
+    setBubbles((current) =>
+      current
+        .filter((bubble) => bubble.id !== typingId)
+        .concat({ id: nextId.current++, who: "in", text: reply })
+    );
+    if (!user && nextSent >= TEASER_LIMIT) {
+      window.setTimeout(() => setLocked(true), 700);
+    }
   };
 
   return (
