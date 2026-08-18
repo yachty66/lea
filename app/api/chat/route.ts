@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth/server";
 
-const MODEL = "deepseek/deepseek-v4-flash";
+const MODEL = "x-ai/grok-4.6";
 
 const PHOTOS = ["cafe", "lake", "kitchen", "bar"] as const;
 
@@ -79,9 +79,9 @@ async function complete(messages: ChatMessage[]) {
         { role: "system", content: SYSTEM },
         ...forModel(messages),
       ],
-      max_tokens: 180,
+      max_tokens: 2000,
       temperature: 0.6,
-      reasoning: { enabled: false },
+      reasoning: { effort: "low", exclude: true },
     }),
   });
   if (!response.ok) {
