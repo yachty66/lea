@@ -3,7 +3,7 @@ import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.6";
 
-const PHOTOS = ["kneipe", "street", "alex", "bar"] as const;
+const PHOTOS = ["fit", "street", "alex", "bar"] as const;
 
 const persona = card.data;
 

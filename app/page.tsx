@@ -237,13 +237,6 @@ export default function Home() {
           </div>
           <div className="film">
             <figure>
-              <img src="/images/kneipe.jpg" alt="Lea in der Kneipe" />
-              <figcaption>
-                <span>dienstag</span>
-                feierabend. ein gin geht noch.
-              </figcaption>
-            </figure>
-            <figure>
               <img src="/images/street.jpg" alt="Lea in Friedrichshain" />
               <figcaption>
                 <span>mittwoch</span>
@@ -255,6 +248,13 @@ export default function Home() {
               <figcaption>
                 <span>freitag, 1 uhr</span>
                 tue so als würde ich auf jemanden warten.
+              </figcaption>
+            </figure>
+            <figure>
+              <img src="/images/fit.jpg" alt="Lea im Ausgeh-Outfit" />
+              <figcaption>
+                <span>samstag</span>
+                outfit check, bevor&rsquo;s losgeht.
               </figcaption>
             </figure>
             <figure>
