@@ -661,11 +661,32 @@ footer {
   text-transform: uppercase;
 }
 
-.auth-chip {
+.top-chips {
   position: absolute;
   top: 16px;
   right: 16px;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discord-chip {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.discord-chip:hover {
+  color: #5865f2;
+}
+
+.auth-chip {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -726,7 +747,7 @@ footer {
     flex-basis: calc(25% - 12px);
   }
 
-  .auth-chip {
+  .top-chips {
     top: 24px;
     right: 24px;
   }
