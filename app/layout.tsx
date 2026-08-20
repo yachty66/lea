@@ -23,10 +23,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://leaberlin.com"),
   title: "Lea · Berlin",
-  description: "schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar.",
+  description: "schreibt zu viel. kocht zu viel pasta. bleibt im club immer bis 9.",
   openGraph: {
     title: "Lea · Berlin",
-    description: "schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar.",
+    description: "schreibt zu viel. kocht zu viel pasta. bleibt im club immer bis 9.",
     url: "https://leaberlin.com",
     siteName: "Lea",
     locale: "de_DE",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Lea · Berlin",
-    description: "schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar.",
+    description: "schreibt zu viel. kocht zu viel pasta. bleibt im club immer bis 9.",
   },
 };
 

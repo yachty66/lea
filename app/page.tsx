@@ -176,6 +176,8 @@ export default function Home() {
                 kocht zu viel pasta.
                 <br />
                 sitzt zu oft alleine an der bar.
+                <br />
+                bleibt im club immer bis 9.
               </p>
             </div>
 
@@ -272,6 +274,8 @@ export default function Home() {
           </p>
           <p>
             meistens koche ich zu viel. manchmal sitze ich an der bar und warte auf niemanden bestimmtes.
+            und samstags steh ich in irgendeinem dunklen laden und tanz, bis die sonne wieder da ist.
+            techno halt.
           </p>
           <p>schreib mir. ich antworte, versprochen.</p>
         </section>

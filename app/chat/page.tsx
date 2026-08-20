@@ -247,8 +247,9 @@ export default function Chat() {
           <p className="side-meta">23 · Berlin</p>
           <h2>Lea</h2>
           <p className="side-bio">
-            schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar. wohnt in einer
-            2er-wg in friedrichshain und tut so als würde sie noch studieren.
+            schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar. bleibt im club
+            immer bis 9. wohnt in einer 2er-wg in friedrichshain und tut so als würde sie noch
+            studieren.
           </p>
         </div>
       </aside>
