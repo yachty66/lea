@@ -301,7 +301,7 @@ export default function Home() {
       </main>
 
       <footer>
-        <p>lea · berlin · 18+</p>
+        <p>lea · berlin · 18+ · ki-charakter</p>
       </footer>
 
       {wall && !user && (
