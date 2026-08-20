@@ -237,10 +237,10 @@ export default function Home() {
           </div>
           <div className="film">
             <figure>
-              <img src="/images/kitchen.jpg" alt="Lea in der Küche" />
+              <img src="/images/kneipe.jpg" alt="Lea in der Kneipe" />
               <figcaption>
                 <span>dienstag</span>
-                soße für vier. bin alleine.
+                feierabend. ein gin geht noch.
               </figcaption>
             </figure>
             <figure>
@@ -258,10 +258,10 @@ export default function Home() {
               </figcaption>
             </figure>
             <figure>
-              <img src="/images/cafe.jpg" alt="Lea beim Kaffee" />
+              <img src="/images/alex.jpg" alt="Lea am Alexanderplatz" />
               <figcaption>
                 <span>heute</span>
-                kaffee bevor ich ins café muss.
+                einmal touri sein am alex.
               </figcaption>
             </figure>
           </div>

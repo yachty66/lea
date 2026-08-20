@@ -27,9 +27,9 @@ const FALLBACKS = [
 ];
 
 const PHOTOS = [
-  { src: "/images/cafe.jpg", alt: "Lea beim Kaffee" },
+  { src: "/images/alex.jpg", alt: "Lea am Alexanderplatz" },
   { src: "/images/street.jpg", alt: "Lea in Friedrichshain" },
-  { src: "/images/kitchen.jpg", alt: "Lea in der Küche" },
+  { src: "/images/kneipe.jpg", alt: "Lea in der Kneipe" },
   { src: "/images/bar.jpg", alt: "Lea an der Bar" },
 ];
 
@@ -174,7 +174,7 @@ export default function Chat() {
     <div className="chat-shell">
       <div className="chat-page">
         <header className="chat-top">
-          <img src="/images/cafe.jpg" alt="Lea" className="chat-avatar" />
+          <img src="/images/street.jpg" alt="Lea" className="chat-avatar" />
           <div className="chat-who">
             <p className="chat-name">Lea</p>
             <p className="chat-status">online</p>
