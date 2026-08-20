@@ -244,17 +244,21 @@ export default function Home() {
               </figcaption>
             </figure>
             <figure>
+              <img
+                src="/images/fit.jpg"
+                alt="Lea im Ausgeh-Outfit"
+                style={{ objectPosition: "50% 8%" }}
+              />
+              <figcaption>
+                <span>samstag</span>
+                outfit check, bevor&rsquo;s losgeht.
+              </figcaption>
+            </figure>
+            <figure>
               <img src="/images/bar.jpg" alt="Lea an der Bar" />
               <figcaption>
                 <span>freitag, 1 uhr</span>
                 tue so als würde ich auf jemanden warten.
-              </figcaption>
-            </figure>
-            <figure>
-              <img src="/images/fit.jpg" alt="Lea im Ausgeh-Outfit" />
-              <figcaption>
-                <span>samstag</span>
-                outfit check, bevor&rsquo;s losgeht.
               </figcaption>
             </figure>
             <figure>
