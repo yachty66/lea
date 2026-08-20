@@ -22,7 +22,7 @@ const OPENER = card.data.first_mes;
 
 const TEASER_LIMIT = 3;
 
-const DISCORD_INVITE = "";
+const DISCORD_INVITE = "https://discord.gg/27Jzse7ra8";
 
 const FALLBACK = "netz ist gerade weg. schick das nochmal? 😅";
 
