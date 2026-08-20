@@ -183,7 +183,7 @@ export default function Chat() {
             {confirmReset ? "sicher?" : "neu anfangen"}
           </button>
           <button type="button" className="chat-out" onClick={signOut}>
-            raus
+            abmelden
           </button>
         </header>
 

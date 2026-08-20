@@ -171,7 +171,7 @@ export default function Home() {
                 )}
                 <span>{user.name?.split(" ")[0] || user.email}</span>
                 <button type="button" onClick={signOut}>
-                  raus
+                  abmelden
                 </button>
               </div>
             ) : (
