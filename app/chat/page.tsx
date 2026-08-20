@@ -28,7 +28,7 @@ const FALLBACKS = [
 
 const PHOTOS = [
   { src: "/images/cafe.jpg", alt: "Lea beim Kaffee" },
-  { src: "/images/lake.jpg", alt: "Lea am See" },
+  { src: "/images/street.jpg", alt: "Lea in Friedrichshain" },
   { src: "/images/kitchen.jpg", alt: "Lea in der Küche" },
   { src: "/images/bar.jpg", alt: "Lea an der Bar" },
 ];

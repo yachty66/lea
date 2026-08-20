@@ -235,17 +235,17 @@ export default function Home() {
           </div>
           <div className="film">
             <figure>
-              <img src="/images/lake.jpg" alt="Lea am See" />
-              <figcaption>
-                <span>sonntag</span>
-                am see. viel zu lange in der sonne.
-              </figcaption>
-            </figure>
-            <figure>
               <img src="/images/kitchen.jpg" alt="Lea in der Küche" />
               <figcaption>
                 <span>dienstag</span>
                 soße für vier. bin alleine.
+              </figcaption>
+            </figure>
+            <figure>
+              <img src="/images/street.jpg" alt="Lea in Friedrichshain" />
+              <figcaption>
+                <span>mittwoch</span>
+                kurz vor die tür. friedrichshain halt.
               </figcaption>
             </figure>
             <figure>
