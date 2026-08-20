@@ -244,6 +244,118 @@ img {
   font-size: 14px;
 }
 
+.authwall-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: paywall-in 0.25s ease;
+}
+
+.authwall {
+  display: flex;
+  width: min(880px, 100%);
+  max-height: min(640px, calc(100dvh - 40px));
+  background: #0d0c0b;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.authwall-photo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: none;
+}
+
+.authwall-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.authwall-mark {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 34px;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+
+.authwall-panel {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 48px 36px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.authwall-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mute);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.authwall-close:hover {
+  color: #fff;
+}
+
+.authwall-panel h2 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(30px, 5vw, 40px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.authwall-sub {
+  margin: 12px 0 24px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.authwall-google {
+  width: 100%;
+}
+
+.authwall-terms {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--mute);
+  line-height: 1.5;
+}
+
+@media (min-width: 720px) {
+  .authwall-photo {
+    display: block;
+  }
+
+  .authwall {
+    min-height: 520px;
+  }
+}
+
 .chat-shell {
   height: 100dvh;
   display: flex;

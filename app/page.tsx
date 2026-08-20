@@ -39,6 +39,7 @@ export default function Home() {
   const [draft, setDraft] = useState("");
   const [sent, setSent] = useState(0);
   const [locked, setLocked] = useState(false);
+  const [wall, setWall] = useState(false);
   const [typing, setTyping] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +62,7 @@ export default function Home() {
   }, [locked]);
 
   const signIn = async () => {
-    posthog.capture("signin_clicked", { from_paywall: locked });
+    posthog.capture("signin_clicked", { from_wall: wall, from_paywall: locked });
     setSigningIn(true);
     try {
       await authClient.signIn.social({
@@ -89,6 +90,11 @@ export default function Home() {
     event.preventDefault();
     const text = draft.trim();
     if (!text || locked || typing) return;
+    if (!user) {
+      setWall(true);
+      posthog.capture("auth_wall_shown");
+      return;
+    }
     if (!user && sent >= TEASER_LIMIT) {
       setLocked(true);
       return;
@@ -274,6 +280,36 @@ export default function Home() {
       <footer>
         <p>lea · berlin · 18+</p>
       </footer>
+
+      {wall && !user && (
+        <div className="authwall-backdrop" onClick={() => setWall(false)}>
+          <div className="authwall" onClick={(event) => event.stopPropagation()}>
+            <div className="authwall-photo">
+              <img src="/images/bar.jpg" alt="Lea an der Bar" />
+              <span className="authwall-mark">lea</span>
+            </div>
+            <div className="authwall-panel">
+              <button
+                type="button"
+                className="authwall-close"
+                aria-label="Schließen"
+                onClick={() => setWall(false)}
+              >
+                ×
+              </button>
+              <h2>sie wartet schon.</h2>
+              <p className="authwall-sub">
+                erstell dir kostenlos einen account, dann weiß lea wer ihr schreibt.
+              </p>
+              <button type="button" className="btn btn-light authwall-google" onClick={signIn} disabled={signingIn}>
+                <GoogleMark />
+                {signingIn ? "redirecting…" : "mit google weiter"}
+              </button>
+              <p className="authwall-terms">mit der anmeldung bestätigst du, dass du mindestens 18 bist.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
