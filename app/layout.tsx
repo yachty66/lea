@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     siteName: "Lea",
     locale: "de_DE",
     type: "website",
+    images: ["/images/hero.jpg"],
   },
   twitter: {
     card: "summary_large_image",

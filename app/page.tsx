@@ -142,7 +142,7 @@ export default function Home() {
     <>
       <main>
         <section className="hero">
-          <img src="/images/cafe.jpg" alt="Lea im Café" className="hero-photo" />
+          <img src="/images/hero.jpg" alt="Lea in Berlin" className="hero-photo" />
           <div className="hero-shade" />
 
           {authReady &&
