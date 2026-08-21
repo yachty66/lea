@@ -1,7 +1,7 @@
 import { getSessionUser } from "@/lib/auth/server";
 import card from "@/lea.card.json";
 
-const MODEL = "x-ai/grok-4.6";
+const MODEL = "x-ai/grok-4.5";
 
 const PHOTOS = ["fit", "street", "alex", "bar"] as const;
 
@@ -92,7 +92,7 @@ async function complete(messages: ChatMessage[]) {
         ...forModel(messages),
         { role: "system", content: POST_HISTORY },
       ],
-      max_tokens: 512,
+      max_tokens: 2000,
       temperature: 0.85,
       reasoning: { effort: "low", exclude: true },
     }),
