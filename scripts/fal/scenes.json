@@ -1,0 +1,46 @@
+{
+  "defaults": {
+    "model": "seedream",
+    "n": 1,
+    "refs": ["reference/lea-ref-upscaled.png"],
+    "prefix": "The reference image is the character sheet of a woman. Create a photorealistic photo of the exact same woman. Preserve her exact face, freckles, green-hazel eyes, blonde messy hair, gold hoop earrings, thin gold necklace, and body proportions from the reference. "
+  },
+  "scenes": [
+    {
+      "name": "hero-portrait",
+      "prompt": "Photorealistic close-up portrait, smiling softly and naturally, looking slightly to the side. Warm golden hour light on her face, realistic skin texture, subtle glow. Tight crop from chest up, shallow depth of field, natural and intimate, no heavy makeup, no filters."
+    },
+    {
+      "name": "see-sonntag",
+      "prompt": "At a Berlin lake on a sunny Sunday. She is sitting on a towel by the water, wearing a simple white tank top, slightly sunburned on her cheeks and shoulders. Soft natural sunlight, relaxed expression, candid feeling, photorealistic."
+    },
+    {
+      "name": "kitchen-pasta",
+      "prompt": "In a small Berlin WG kitchen. She is cooking a large pot of pasta sauce, wearing an oversized grey sweater, looking back at the camera with a self-ironic smile. Warm indoor lighting, everyday kitchen atmosphere, photorealistic."
+    },
+    {
+      "name": "bar-freitag",
+      "prompt": "Sitting alone at a Berlin bar at night. She is wearing a black top, resting her chin on her hand, soft tired but calm expression. Warm low bar lighting, intimate and slightly lonely mood, photorealistic."
+    },
+    {
+      "name": "cafe-morgens",
+      "prompt": "Sitting outside a Berlin cafe in the morning. She is wearing a light beige shirt, holding a coffee cup, soft natural morning light, gentle smile. Candid and fresh feeling, photorealistic."
+    },
+    {
+      "name": "cafe-schicht",
+      "prompt": "Working in a Berlin cafe behind the counter, holding a coffee, wearing a simple black top and apron, natural daylight, friendly but slightly tired expression, photorealistic."
+    },
+    {
+      "name": "after-techno",
+      "prompt": "The morning after a techno night. Messy blonde hair, oversized shirt, soft window light, tired but soft expression, sitting on her bed by the window, photorealistic."
+    },
+    {
+      "name": "street-selfie",
+      "prompt": "Casual street selfie in Friedrichshain, Berlin, graffiti and altbau in the background. Natural daylight, black crop top, slight wind in her hair, realistic and candid, shot on a phone front camera."
+    },
+    {
+      "name": "techno-night",
+      "prompt": "In a dark Berlin techno club at night, harsh direct flash photo, slightly grainy, black outfit, sweaty hair strands, red and blue stage light in the background, caught mid-laugh, candid party photo aesthetic, photorealistic."
+    }
+  ]
+}
