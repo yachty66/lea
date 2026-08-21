@@ -42,6 +42,29 @@ const SHOOTOUT_MODELS = {
       enable_prompt_expansion: false,
     }),
   },
+  grokq: {
+    endpoint: "xai/grok-imagine-image/quality/edit",
+    input: (prompt, urls) => ({
+      prompt,
+      image_urls: urls,
+      aspect_ratio: "3:4",
+      resolution: "2k",
+      num_images: 1,
+      output_format: "png",
+    }),
+  },
+  hunyuan3: {
+    endpoint: "fal-ai/hunyuan-image/v3/instruct/edit",
+    input: (prompt, urls) => ({
+      prompt,
+      image_urls: urls,
+      image_size: { width: 1536, height: 2048 },
+      num_images: 1,
+      output_format: "png",
+      enable_safety_checker: false,
+      enable_prompt_expansion: false,
+    }),
+  },
   seedream5: {
     endpoint: "bytedance/seedream/v5/pro/edit",
     input: (prompt, urls) => ({
