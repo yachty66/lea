@@ -75,5 +75,6 @@ export async function saveImages(images, outDir, name) {
 }
 
 export function writeSummary(outDir, entries) {
+  mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "summary.json"), JSON.stringify(entries, null, 2));
 }
