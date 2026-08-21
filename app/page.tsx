@@ -71,6 +71,8 @@ export default function Home() {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/chat",
+        newUserCallbackURL: "/chat",
+        errorCallbackURL: "/",
       });
     } catch (error) {
       console.error("Google sign-in error:", error);
