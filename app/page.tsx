@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import posthog from "posthog-js";
 import { authClient } from "@/lib/auth/client";
+import { TypingDots, playPing } from "@/lib/fx";
 import card from "@/lea.card.json";
 
 type User = {
@@ -135,6 +136,7 @@ export default function Home() {
         .filter((bubble) => bubble.id !== typingId)
         .concat({ id: nextId.current++, who: "in", text: reply })
     );
+    playPing();
     if (!user && nextSent >= TEASER_LIMIT) {
       window.setTimeout(() => setLocked(true), 700);
     }
@@ -206,7 +208,7 @@ export default function Home() {
               <div className="chat-log" ref={logRef}>
                 {bubbles.map((bubble) => (
                   <div key={bubble.id} className={`bubble ${bubble.who}`}>
-                    {bubble.text}
+                    {bubble.who === "in typing" ? <TypingDots /> : bubble.text}
                   </div>
                 ))}
               </div>

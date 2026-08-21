@@ -92,7 +92,7 @@ async function complete(messages: ChatMessage[]) {
         ...forModel(messages),
         { role: "system", content: POST_HISTORY },
       ],
-      max_tokens: 2000,
+      max_tokens: 512,
       temperature: 0.85,
       reasoning: { effort: "low", exclude: true },
     }),

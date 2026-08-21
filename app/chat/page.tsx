@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { authClient } from "@/lib/auth/client";
+import { TypingDots, playPing } from "@/lib/fx";
 import card from "@/lea.card.json";
 
 type User = {
@@ -160,6 +161,7 @@ export default function Chat() {
       ...current,
       { id: nextId.current++, who: "in", text: reply, photo: photoUrl },
     ]);
+    playPing();
   };
 
   if (!ready) {
@@ -194,7 +196,11 @@ export default function Chat() {
               {msg.text}
             </div>
           ))}
-          {typing && <div className="bubble in typing">•••</div>}
+          {typing && (
+            <div className="bubble in typing">
+              <TypingDots />
+            </div>
+          )}
         </div>
 
         <form className="chat-compose chat-bottom" onSubmit={onSubmit}>
