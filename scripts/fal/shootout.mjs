@@ -70,7 +70,8 @@ const picked = get("--models", Object.keys(SHOOTOUT_MODELS).join(",")).split(","
 
 loadEnv();
 const urls = [await uploadRef(ref)];
-const outDir = join("generations", `${new Date().toISOString().slice(0, 10)}-shootout`);
+const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+const outDir = join("generations", `shootout-${stamp}`);
 
 console.log(`running ${picked.join(", ")} in parallel...`);
 const results = await Promise.allSettled(
@@ -92,7 +93,8 @@ results.forEach((res, i) => {
     console.log(`${key}: ok (${res.value.seconds.toFixed(1)}s) -> ${res.value.files.join(", ")}`);
     summary.push({ ...res.value, ok: true, prompt });
   } else {
-    const message = String(res.reason?.body?.detail ?? res.reason?.message ?? res.reason).slice(0, 300);
+    const detail = res.reason?.body?.detail ?? res.reason?.message ?? res.reason;
+    const message = (typeof detail === "string" ? detail : JSON.stringify(detail)).slice(0, 300);
     console.log(`${key}: FAILED: ${message}`);
     summary.push({ key, ok: false, error: message, prompt });
   }
