@@ -65,6 +65,8 @@ export default function Home() {
   }, [locked]);
 
   const signIn = async () => {
+    const pending = draft.trim();
+    if (pending) window.localStorage.setItem("lea-pending", pending);
     posthog.capture("signin_clicked", { from_wall: wall, from_paywall: locked });
     setSigningIn(true);
     try {
@@ -96,6 +98,7 @@ export default function Home() {
     const text = draft.trim();
     if (!text || locked || typing) return;
     if (!user) {
+      window.localStorage.setItem("lea-pending", text);
       setWall(true);
       posthog.capture("auth_wall_shown");
       return;

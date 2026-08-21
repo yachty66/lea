@@ -74,14 +74,20 @@ export default function Chat() {
         setUser(u);
         posthog.identify(u.id, { email: u.email, name: u.name });
         const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
+        let initial: Msg[];
         if (saved) {
-          const parsed = JSON.parse(saved) as Msg[];
-          setMsgs(parsed);
-          nextId.current = parsed.reduce((max, m) => Math.max(max, m.id), 0) + 1;
+          initial = JSON.parse(saved) as Msg[];
+          nextId.current = initial.reduce((max, m) => Math.max(max, m.id), 0) + 1;
         } else {
-          setMsgs([{ id: 0, who: "in", text: OPENER }]);
+          initial = [{ id: 0, who: "in", text: OPENER }];
         }
+        setMsgs(initial);
         setReady(true);
+        const pending = window.localStorage.getItem("lea-pending");
+        if (pending) {
+          window.localStorage.removeItem("lea-pending");
+          void send(pending, initial);
+        }
       })
       .catch(() => router.replace("/"));
   }, [router]);
@@ -119,10 +125,13 @@ export default function Chat() {
     event.preventDefault();
     const text = draft.trim();
     if (!text || typing) return;
-
-    const history = [...msgs, { id: nextId.current++, who: "out" as const, text }];
-    setMsgs(history);
     setDraft("");
+    await send(text);
+  };
+
+  const send = async (text: string, base?: Msg[]) => {
+    const history = [...(base ?? msgs), { id: nextId.current++, who: "out" as const, text }];
+    setMsgs(history);
     setTyping(true);
 
     posthog.capture("message_sent", { length: text.length, history_length: history.length });
