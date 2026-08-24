@@ -47,6 +47,7 @@ export default function Chat() {
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
   const [photoPending, setPhotoPending] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [photo, setPhoto] = useState(0);
   const [confirmReset, setConfirmReset] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
@@ -92,6 +93,15 @@ export default function Chat() {
       })
       .catch(() => router.replace("/"));
   }, [router]);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   useEffect(() => {
     if (user && user.id !== "preview" && msgs.length) {
@@ -225,7 +235,14 @@ export default function Chat() {
         <div className="chat-main" ref={logRef}>
           {msgs.map((msg) => (
             <div key={msg.id} className={`bubble ${msg.who}`}>
-              {msg.photo && <img src={msg.photo} alt="" className="bubble-photo" />}
+              {msg.photo && (
+                <img
+                  src={msg.photo}
+                  alt=""
+                  className="bubble-photo"
+                  onClick={() => setLightbox(msg.photo!)}
+                />
+              )}
               {msg.text}
             </div>
           ))}
@@ -259,7 +276,12 @@ export default function Chat() {
 
       <aside className="chat-side">
         <div className="side-slider">
-          <img src={PHOTOS[photo].src} alt={PHOTOS[photo].alt} />
+          <img
+            src={PHOTOS[photo].src}
+            alt={PHOTOS[photo].alt}
+            onClick={() => setLightbox(PHOTOS[photo].src)}
+            style={{ cursor: "zoom-in" }}
+          />
           <button
             type="button"
             className="side-nav side-prev"
@@ -298,6 +320,20 @@ export default function Chat() {
           </p>
         </div>
       </aside>
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <button
+            type="button"
+            className="lightbox-close"
+            aria-label="Schließen"
+            onClick={() => setLightbox(null)}
+          >
+            ×
+          </button>
+          <img src={lightbox} alt="" onClick={(event) => event.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }

@@ -167,6 +167,51 @@ img {
   }
 }
 
+.bubble-photo {
+  cursor: zoom-in;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: zoom-out;
+  animation: paywall-in 0.2s ease;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: calc(100dvh - 48px);
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  cursor: default;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .photo-pending {
   display: inline-flex;
   align-items: center;
