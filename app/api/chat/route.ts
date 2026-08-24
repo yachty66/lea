@@ -3,8 +3,6 @@ import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.5";
 
-const PHOTOS = ["fit", "street", "alex", "bar"] as const;
-
 const persona = card.data;
 
 function fill(text: string): string {
@@ -53,7 +51,7 @@ function sanitize(input: unknown): ChatMessage[] | null {
   return messages;
 }
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const IDENTITY_LEAK =
   /(grok|x\s*\.?\s*ai\b|sprachmodell|language\s*model|chat\s*gpt|openai|anthropic|claude\b|deepseek|\bllm\b|ai[- ]modell|ki[- ]modell|bin\s+(eine\s+)?ki\b|bin\s+ein\s+(ai[- ])?bot\b|als\s+ki\b|trainiert\s+von|system\s*prompt)/i;
@@ -76,42 +74,6 @@ function parseReply(raw: string) {
   return { text, photoPrompt };
 }
 
-function fallbackPhoto(): string {
-  return `/images/${PHOTOS[Math.floor(Math.random() * PHOTOS.length)]}.jpg`;
-}
-
-async function generatePhoto(description: string, origin: string): Promise<string> {
-  const prompt =
-    `Image 1 is the character reference sheet of a woman. Create a photorealistic photo of the exact same woman. ` +
-    `Preserve her exact face, freckles, green-hazel eyes, blonde messy hair, gold hoop earrings, thin gold necklace and body proportions from Image 1. ` +
-    `Scene: ${description}. ` +
-    `She stays fully clothed, everyday casual content. Shot on a phone, candid amateur photo aesthetic, realistic skin texture, photorealistic.`;
-  const response = await fetch("https://fal.run/fal-ai/hunyuan-image/v3/instruct/edit", {
-    method: "POST",
-    headers: {
-      Authorization: `Key ${process.env.FAL_KEY}`,
-      "Content-Type": "application/json",
-    },
-    signal: AbortSignal.timeout(75_000),
-    body: JSON.stringify({
-      prompt,
-      image_urls: [new URL("/ref/lea-sheet.jpg", origin).toString()],
-      image_size: { width: 768, height: 1024 },
-      num_images: 1,
-      output_format: "jpeg",
-      enable_safety_checker: false,
-      enable_prompt_expansion: false,
-    }),
-  });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`fal ${response.status} ${detail.slice(0, 200)}`);
-  }
-  const data = await response.json();
-  const url = data?.images?.[0]?.url;
-  if (typeof url !== "string") throw new Error("fal returned no image");
-  return url;
-}
 
 async function complete(messages: ChatMessage[]) {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -162,29 +124,14 @@ export async function POST(request: Request) {
     }
   }
 
-  const requestOrigin = new URL(request.url).origin;
-  const origin = requestOrigin.includes("localhost") ? "https://leaberlin.com" : requestOrigin;
-
-  const resolve = async (reply: { text: string; photoPrompt?: string }) => {
-    if (reply.photoPrompt === undefined) return { text: reply.text };
-    let photo: string;
-    try {
-      photo = await generatePhoto(reply.photoPrompt || "casual selfie in her apartment, soft light", origin);
-    } catch (error) {
-      console.error("photo generation failed:", error);
-      photo = fallbackPhoto();
-    }
-    return { text: reply.text, photo };
-  };
-
   try {
     const reply = await complete(messages);
-    return Response.json(await resolve(reply));
+    return Response.json(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
       const reply = await complete(messages);
-      return Response.json(await resolve(reply));
+      return Response.json(reply);
     } catch (second) {
       console.error("openrouter retry failed:", second);
       if (String(second).includes("identity leak")) {

@@ -167,6 +167,18 @@ img {
   }
 }
 
+.photo-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.photo-pending-label {
+  font-size: 13px;
+  letter-spacing: normal;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .chat-compose {
   display: flex;
   gap: 8px;

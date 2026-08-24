@@ -46,6 +46,7 @@ export default function Chat() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
+  const [photoPending, setPhotoPending] = useState(false);
   const [photo, setPhoto] = useState(0);
   const [confirmReset, setConfirmReset] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
@@ -97,7 +98,7 @@ export default function Chat() {
       window.localStorage.setItem(`lea-chat-${user.id}`, JSON.stringify(msgs));
     }
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [msgs, typing, user]);
+  }, [msgs, typing, photoPending, user]);
 
   const resetChat = () => {
     if (!confirmReset) {
@@ -137,7 +138,7 @@ export default function Chat() {
     posthog.capture("message_sent", { length: text.length, history_length: history.length });
 
     let reply = "";
-    let photoUrl: string | undefined;
+    let photoPrompt: string | undefined;
     let failed = false;
     try {
       const response = await fetch("/api/chat", {
@@ -153,7 +154,7 @@ export default function Chat() {
       if (!response.ok) throw new Error(`chat api ${response.status}`);
       const data = await response.json();
       reply = typeof data.text === "string" ? data.text : data.reply;
-      photoUrl = typeof data.photo === "string" ? data.photo : undefined;
+      photoPrompt = typeof data.photoPrompt === "string" ? data.photoPrompt : undefined;
     } catch (error) {
       console.error("chat error:", error);
       failed = true;
@@ -163,14 +164,37 @@ export default function Chat() {
       reply = FALLBACKS[pick];
     }
 
-    posthog.capture("reply_received", { with_photo: Boolean(photoUrl), fallback: failed });
+    posthog.capture("reply_received", { with_photo: photoPrompt !== undefined, fallback: failed });
 
     setTyping(false);
-    setMsgs((current) => [
-      ...current,
-      { id: nextId.current++, who: "in", text: reply, photo: photoUrl },
-    ]);
-    playPing();
+    if (reply) {
+      setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
+      playPing();
+    }
+
+    if (photoPrompt !== undefined) {
+      setPhotoPending(true);
+      try {
+        const response = await fetch("/api/photo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: photoPrompt }),
+        });
+        if (!response.ok) throw new Error(`photo api ${response.status}`);
+        const data = await response.json();
+        if (typeof data.photo === "string") {
+          setMsgs((current) => [
+            ...current,
+            { id: nextId.current++, who: "in", text: "", photo: data.photo },
+          ]);
+          playPing();
+        }
+      } catch (error) {
+        console.error("photo error:", error);
+      } finally {
+        setPhotoPending(false);
+      }
+    }
   };
 
   if (!ready) {
@@ -207,6 +231,12 @@ export default function Chat() {
           ))}
           {typing && (
             <div className="bubble in typing">
+              <TypingDots />
+            </div>
+          )}
+          {photoPending && (
+            <div className="bubble in typing photo-pending">
+              <span className="photo-pending-label">📷 macht ein foto</span>
               <TypingDots />
             </div>
           )}
