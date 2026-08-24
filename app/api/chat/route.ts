@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { getSessionUser } from "@/lib/auth/server";
+import { saveMessages } from "@/lib/db";
 import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.5";
@@ -112,32 +114,43 @@ export async function POST(request: Request) {
   const messages = sanitize(body?.messages);
   if (!messages) return Response.json({ error: "bad request" }, { status: 400 });
 
-  if (process.env.NODE_ENV !== "development") {
-    const user = await getSessionUser();
-    if (!user) {
-      const fromHim = messages.filter((msg) => msg.role === "user").length;
-      const withinTeaser =
-        fromHim <= TEASER_LIMIT && messages.length <= TEASER_LIMIT * 2 + 1;
-      if (!withinTeaser) {
-        return Response.json({ error: "unauthorized" }, { status: 401 });
-      }
+  const user = process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
+  if (process.env.NODE_ENV !== "development" && !user) {
+    const fromHim = messages.filter((msg) => msg.role === "user").length;
+    const withinTeaser =
+      fromHim <= TEASER_LIMIT && messages.length <= TEASER_LIMIT * 2 + 1;
+    if (!withinTeaser) {
+      return Response.json({ error: "unauthorized" }, { status: 401 });
     }
   }
 
+  const persist = (replyText: string) => {
+    if (!user) return;
+    const last = messages[messages.length - 1];
+    after(() =>
+      saveMessages(user.id, [
+        ...(last?.role === "user" ? [{ role: "user" as const, content: last.content }] : []),
+        ...(replyText ? [{ role: "assistant" as const, content: replyText }] : []),
+      ])
+    );
+  };
+
   try {
     const reply = await complete(messages);
+    persist(reply.text);
     return Response.json(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
       const reply = await complete(messages);
+      persist(reply.text);
       return Response.json(reply);
     } catch (second) {
       console.error("openrouter retry failed:", second);
       if (String(second).includes("identity leak")) {
-        return Response.json({
-          text: DEFLECTIONS[Math.floor(Math.random() * DEFLECTIONS.length)],
-        });
+        const deflection = DEFLECTIONS[Math.floor(Math.random() * DEFLECTIONS.length)];
+        persist(deflection);
+        return Response.json({ text: deflection });
       }
       return Response.json({ error: "upstream" }, { status: 502 });
     }
