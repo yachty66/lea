@@ -19,6 +19,7 @@ type Msg = {
   who: "in" | "out";
   text: string;
   photo?: string;
+  desc?: string;
 };
 
 const OPENER = card.data.first_mes;
@@ -140,12 +141,68 @@ export default function Chat() {
     await send(text);
   };
 
-  const send = async (text: string, base?: Msg[]) => {
-    const history = [...(base ?? msgs), { id: nextId.current++, who: "out" as const, text }];
+  const downscale = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 768;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(img.src);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+
+  const onPickPhoto = async (file: File) => {
+    if (typing || photoPending) return;
+    let dataUri: string;
+    try {
+      dataUri = await downscale(file);
+    } catch (error) {
+      console.error("image read error:", error);
+      return;
+    }
+    const photoMsg: Msg = { id: nextId.current++, who: "out", text: "", photo: dataUri };
+    const history = [...msgs, photoMsg];
     setMsgs(history);
     setTyping(true);
+    posthog.capture("user_photo_sent");
+    try {
+      const response = await fetch("/api/vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataUri }),
+      });
+      const data = await response.json();
+      if (typeof data.description === "string") photoMsg.desc = data.description;
+    } catch (error) {
+      console.error("vision error:", error);
+    }
+    await converse(history);
+  };
 
+  const send = async (text: string, base?: Msg[]) => {
+    const history = [...(base ?? msgs), { id: nextId.current++, who: "out" as const, text }];
     posthog.capture("message_sent", { length: text.length, history_length: history.length });
+    await converse(history);
+  };
+
+  const asContent = (msg: Msg): string => {
+    if (!msg.photo) return msg.text;
+    if (msg.who === "out") {
+      return `${msg.text}\n[er schickt dir ein foto. darauf zu sehen: ${msg.desc || "keine beschreibung verfügbar"}]`.trim();
+    }
+    return `${msg.text}\n[foto geschickt]`.trim();
+  };
+
+  const converse = async (history: Msg[]) => {
+    setMsgs(history);
+    setTyping(true);
 
     let reply = "";
     let photoPrompt: string | undefined;
@@ -157,7 +214,7 @@ export default function Chat() {
         body: JSON.stringify({
           messages: history.map((msg) => ({
             role: msg.who === "out" ? "user" : "assistant",
-            content: msg.photo ? `${msg.text}\n[foto geschickt]`.trim() : msg.text,
+            content: asContent(msg),
           })),
         }),
       });
@@ -260,6 +317,19 @@ export default function Chat() {
         </div>
 
         <form className="chat-compose chat-bottom" onSubmit={onSubmit}>
+          <label className="attach-btn" aria-label="Foto senden">
+            +
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) onPickPhoto(file);
+              }}
+            />
+          </label>
           <input
             type="text"
             autoComplete="off"
