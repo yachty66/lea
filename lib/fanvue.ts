@@ -50,6 +50,9 @@ export async function exchangeCode(code: string, codeVerifier: string) {
       code_verifier: codeVerifier,
     })
   );
+  if (!data.refresh_token) {
+    throw new Error("no refresh_token returned (offline_access scope not granted)");
+  }
   await saveTokens(data.refresh_token, data.access_token, data.expires_in ?? 3600);
   return data;
 }

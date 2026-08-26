@@ -19,10 +19,11 @@ export async function GET(request: Request) {
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("client_id", process.env.FANVUE_CLIENT_ID!);
   authUrl.searchParams.set("redirect_uri", process.env.FANVUE_REDIRECT_URI!);
-  authUrl.searchParams.set("scope", FANVUE_SCOPES);
+  authUrl.searchParams.set("scope", `${FANVUE_SCOPES} offline_access`);
   authUrl.searchParams.set("code_challenge", challenge);
   authUrl.searchParams.set("code_challenge_method", "S256");
   authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("prompt", "consent");
 
   const secure = "Secure; ";
   const cookie = [
