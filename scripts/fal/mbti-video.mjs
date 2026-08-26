@@ -38,9 +38,9 @@ for (const s of scenes) {
     });
     const url = r.data?.video?.url;
     const buf = Buffer.from(await (await fetch(url)).arrayBuffer());
-    writeFileSync(join(dir, "video.mp4"), buf);
-    writeFileSync(join(dir, "video.json"), JSON.stringify({ prompt, duration, resolution, url, requestId: r.requestId, seconds: (Date.now() - started) / 1000 }, null, 2));
-    console.log(`ok (${((Date.now() - started) / 1000).toFixed(0)}s, ${(buf.length / 1e6).toFixed(1)} MB) -> content/${s.name}/video.mp4`);
+    const out = get("--out", "video.mp4"); writeFileSync(join(dir, out), buf);
+    writeFileSync(join(dir, out.replace(".mp4", ".json")), JSON.stringify({ prompt, duration, resolution, url, requestId: r.requestId, seconds: (Date.now() - started) / 1000 }, null, 2));
+    console.log(`ok (${((Date.now() - started) / 1000).toFixed(0)}s, ${(buf.length / 1e6).toFixed(1)} MB) -> content/${s.name}/${out}`);
   } catch (e) {
     console.log(`FAILED: ${String(e?.body?.detail ?? e?.message ?? e).slice(0, 300)}`);
   }

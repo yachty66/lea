@@ -27,11 +27,11 @@ if (!scenes.length) {
 
 loadEnv();
 
-const seedancePrompt = (s) => `Low-poly papercraft animation, static camera, keep both characters exactly as in the image.
+const seedancePrompt = (s) => `Low-poly papercraft animation, static camera, keep both characters exactly as in the image. Lively, energetic, comedic dialogue with big gestures and exaggerated facial expressions.
 
-The ${s.first.label} speaks first, in a ${s.first.voice} voice, while the other's mouth stays closed: "${s.first.line}"
+The ${s.first.label} speaks first, in a ${s.first.voice} voice, with big expressive gestures, while the other's mouth stays closed and they react: "${s.first.line}"
 
-Then the ${s.second.label} replies, in a ${s.second.voice} voice, while the other's mouth stays closed: "${s.second.line}"
+Then the ${s.second.label} replies, in a ${s.second.voice} voice, with big expressive gestures, while the other's mouth stays closed and they react: "${s.second.line}"
 
 Only the speaking character moves their lips. ${s.ambience}, no music, no subtitles.`;
 
