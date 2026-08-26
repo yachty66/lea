@@ -1,6 +1,20 @@
+import { neon } from "@neondatabase/serverless";
 import { fanvueFetch } from "@/lib/fanvue";
 
 const HISTORY = 24;
+
+// Atomically claim a fan message so only one concurrent trigger (webhook + poll,
+// or duplicate webhook deliveries) ever replies to it. Returns true if we won.
+async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return true;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    insert into fanvue_handled (fan_uuid, message_uuid)
+    values (${fanUuid}, ${messageUuid})
+    on conflict do nothing
+    returning message_uuid`;
+  return rows.length > 0;
+}
 
 type FanvueMessage = {
   uuid: string;
@@ -91,6 +105,9 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
   const ordered = [...msgs].reverse(); // API returns newest-first
   const last = ordered[ordered.length - 1];
   if (!last || last.sender?.uuid === me) return false; // nothing new / we already answered
+
+  // Win the exclusive claim on this fan message, or bail (someone else has it).
+  if (!(await claim(fanUuid, last.uuid))) return false;
 
   const history: { role: "user" | "assistant"; content: string }[] = [];
   for (const m of ordered) {
