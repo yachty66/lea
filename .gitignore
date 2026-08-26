@@ -7,3 +7,4 @@ node_modules
 .env*.local
 tsconfig.tsbuildinfo
 generations/
+content/**/video.mp4
