@@ -5,6 +5,18 @@ const HISTORY = 24;
 
 // Atomically claim a fan message so only one concurrent trigger (webhook + poll,
 // or duplicate webhook deliveries) ever replies to it. Returns true if we won.
+// Dedupe a webhook by its event id. Fanvue delivers at-least-once (the same
+// event can arrive multiple times), so the FIRST thing every delivery does is
+// try to claim its event id — only the first delivery of an event proceeds.
+export async function claimEvent(eventId: string): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    insert into fanvue_events (event_id) values (${eventId})
+    on conflict do nothing returning event_id`;
+  return rows.length > 0;
+}
+
 async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
   if (!process.env.DATABASE_URL) return false; // refuse rather than risk a duplicate
   const sql = neon(process.env.DATABASE_URL);

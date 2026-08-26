@@ -1,6 +1,6 @@
 import { after } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { sweepUnread } from "@/lib/fanvue-chat";
+import { processChat, claimEvent } from "@/lib/fanvue-chat";
 
 export const maxDuration = 90;
 
@@ -18,7 +18,15 @@ function verify(rawBody: string, header: string | null, secret: string): boolean
   }
 }
 
-const MESSAGE_EVENTS = new Set(["message.received", "creator.message.received"]);
+type MessageEvent = {
+  id?: string;
+  type?: string;
+  data?: {
+    sender?: string;
+    is_automated?: boolean;
+    fan?: { uuid?: string };
+  };
+};
 
 export async function POST(request: Request) {
   const raw = await request.text();
@@ -31,27 +39,42 @@ export async function POST(request: Request) {
       return new Response("bad signature", { status: 401 });
     }
   }
+  if (!secret) return new Response("ok", { status: 200 });
 
-  let event: { type?: string } = {};
+  let event: MessageEvent = {};
   try {
     event = JSON.parse(raw);
   } catch {
     return new Response("ok", { status: 200 });
   }
 
-  const origin = new URL(request.url).origin.includes("localhost")
-    ? "https://leaberlin.com"
-    : new URL(request.url).origin;
+  // Idempotency: Fanvue delivers at-least-once. Claim the event id (or the
+  // Standard-Webhooks `webhook-id` header) so a re-delivery is ignored.
+  const eventId = event.id || request.headers.get("webhook-id");
+  if (eventId && !(await claimEvent(eventId))) {
+    return new Response("ok", { status: 200 }); // already handled
+  }
 
-  if (secret && event.type && MESSAGE_EVENTS.has(event.type)) {
-    // Ack immediately, generate + send the reply after responding.
-    after(async () => {
-      try {
-        await sweepUnread(origin);
-      } catch (e) {
-        console.error("webhook sweep failed:", (e as Error).message);
-      }
-    });
+  // Only answer genuine inbound fan messages (not our own sent messages, not
+  // automated ones), and process the exact conversation from the payload.
+  if (
+    event.type === "creator.message.received" &&
+    event.data?.sender === "fan" &&
+    event.data?.is_automated !== true
+  ) {
+    const fanUuid = event.data?.fan?.uuid;
+    const origin = new URL(request.url).origin.includes("localhost")
+      ? "https://leaberlin.com"
+      : new URL(request.url).origin;
+    if (fanUuid) {
+      after(async () => {
+        try {
+          await processChat(fanUuid, origin);
+        } catch (e) {
+          console.error("webhook processChat failed:", (e as Error).message);
+        }
+      });
+    }
   }
 
   return new Response("ok", { status: 200 });
