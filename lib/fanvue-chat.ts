@@ -16,17 +16,6 @@ async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
   return rows.length > 0;
 }
 
-// Release a claim so a later trigger can retry, when we failed to actually reply.
-async function release(fanUuid: string, messageUuid: string): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
-  try {
-    const sql = neon(process.env.DATABASE_URL);
-    await sql`delete from fanvue_handled where fan_uuid = ${fanUuid} and message_uuid = ${messageUuid}`;
-  } catch {
-    /* ignore */
-  }
-}
-
 type FanvueMessage = {
   uuid: string;
   text?: string | null;
@@ -117,24 +106,27 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
   const last = ordered[ordered.length - 1];
   if (!last || last.sender?.uuid === me) return false; // nothing new / we already answered
 
-  // Win the exclusive claim on this fan message, or bail (someone else has it).
+  // Win the exclusive claim on this fan message, or bail. The claim is NEVER
+  // released: whoever wins it is the only one allowed to answer this message,
+  // full stop. (A genuine hard failure means the fan re-messages to retry — far
+  // better than the duplicate replies that release-and-retry caused.)
   if (!(await claim(fanUuid, last.uuid))) return false;
 
-  // reply() never throws and never releases after a send, so a claim is only
-  // released when we sent NOTHING — which is the only safe time to allow a retry.
-  const status = await reply(fanUuid, ordered, me, origin);
-  if (status !== "sent") await release(fanUuid, last.uuid);
-  return status === "sent";
+  try {
+    return await reply(fanUuid, last.uuid, ordered, me, origin);
+  } catch (e) {
+    console.error("reply error (claim kept):", (e as Error).message);
+    return false;
+  }
 }
-
-type ReplyStatus = "sent" | "retry" | "skip";
 
 async function reply(
   fanUuid: string,
+  lastUuid: string,
   ordered: FanvueMessage[],
   me: string,
   origin: string
-): Promise<ReplyStatus> {
+): Promise<boolean> {
   const history: { role: "user" | "assistant"; content: string }[] = [];
   for (const m of ordered) {
     const fromFan = m.sender?.uuid !== me;
@@ -146,18 +138,21 @@ async function reply(
     if (!content) continue;
     history.push({ role: fromFan ? "user" : "assistant", content });
   }
-  if (!history.length || history[history.length - 1].role !== "user") return "skip";
+  if (!history.length || history[history.length - 1].role !== "user") return false;
 
-  let result: { text?: string; photoPrompt?: unknown };
-  try {
-    const chatRes = await internal("/api/chat", origin, { messages: history });
-    if (!chatRes.ok) return "retry";
-    result = await chatRes.json();
-  } catch {
-    return "retry"; // brain failed before any send — safe to retry
-  }
+  const result = await internal("/api/chat", origin, { messages: history }).then((r) =>
+    r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))
+  );
   const text = (result.text ?? "").trim();
   const wantsPhoto = typeof result.photoPrompt === "string";
+
+  // Belt-and-suspenders: after the ~7s generation, make sure no other trigger
+  // already answered while we were thinking. If Lea is now the last sender, bail.
+  const latest = await fanvueFetch(`/chats/${fanUuid}/messages?size=1`);
+  if (latest.ok) {
+    const newest = ((await latest.json()).data ?? [])[0] as FanvueMessage | undefined;
+    if (newest && newest.sender?.uuid === me) return false;
+  }
 
   const send = (body: Record<string, unknown>) =>
     fanvueFetch(`/chats/${fanUuid}/message`, { method: "POST", body: JSON.stringify(body) });
@@ -166,12 +161,7 @@ async function reply(
 
   // 1) Text first — arrives fast, before the slow photo work.
   if (text) {
-    try {
-      if ((await send({ text })).ok) sent = true;
-    } catch {
-      /* handled below */
-    }
-    if (!sent) return "retry"; // text send failed and nothing sent yet — safe to retry
+    if ((await send({ text })).ok) sent = true;
   }
 
   // 2) Photo as a follow-up message (generation + upload is the slow part, so it
@@ -193,13 +183,9 @@ async function reply(
 
   // 3) Never ghost the fan — but only if we truly sent nothing.
   if (!sent) {
-    try {
-      if ((await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" })).ok) sent = true;
-    } catch {
-      /* fall through */
-    }
+    if ((await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" })).ok) sent = true;
   }
-  return sent ? "sent" : "retry";
+  return sent;
 }
 
 // Answer any chat whose latest message is from the fan. We can't rely on the
