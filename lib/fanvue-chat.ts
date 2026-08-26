@@ -72,7 +72,10 @@ async function describeInbound(fanUuid: string, messageUuid: string, origin: str
   }
 }
 
-async function uploadPhoto(fanUuid: string, imageUrl: string): Promise<string | null> {
+// S3 multipart upload of an image to Fanvue's media store, per their docs:
+// create session -> for each part fetch a presigned URL, PUT the slice, keep the
+// ETag -> PATCH to complete with the ETags. Returns the permanent mediaUuid.
+async function uploadPhoto(imageUrl: string): Promise<string | null> {
   const img = await fetch(imageUrl);
   if (!img.ok) return null;
   const bytes = Buffer.from(await img.arrayBuffer());
@@ -83,30 +86,34 @@ async function uploadPhoto(fanUuid: string, imageUrl: string): Promise<string | 
     body: JSON.stringify({ name: filename, filename, mediaType: "image", sizeBytes: bytes.length }),
   });
   if (!createdRes.ok) return null;
-  const created = await createdRes.json();
-  const uploadId = created.uploadId || created.uuid || created.id;
+  const { mediaUuid, uploadId, partSize, totalParts } = (await createdRes.json()) as {
+    mediaUuid: string;
+    uploadId: string;
+    partSize: number;
+    totalParts: number | null;
+  };
+  const parts = totalParts ?? Math.max(1, Math.ceil(bytes.length / partSize));
 
-  const parts = created.parts || created.uploadParts || [];
-  if (parts.length) {
-    const chunkSize = Math.ceil(bytes.length / parts.length);
-    for (const part of parts) {
-      const url = part.url || part.uploadUrl;
-      const n = part.partNumber ?? part.number ?? 1;
-      const slice = bytes.subarray((n - 1) * chunkSize, n * chunkSize);
-      const put = await fetch(url, { method: "PUT", body: slice });
-      if (!put.ok) return null;
-    }
-  } else if (created.uploadUrl || created.url) {
-    const put = await fetch(created.uploadUrl || created.url, { method: "PUT", body: bytes });
+  const completed: { PartNumber: number; ETag: string }[] = [];
+  for (let n = 1; n <= parts; n++) {
+    const urlRes = await fanvueFetch(`/media/uploads/${uploadId}/parts/${n}/url`);
+    if (!urlRes.ok) return null;
+    const signedUrl = (await urlRes.text()).trim().replace(/^"|"$/g, "");
+    const start = (n - 1) * partSize;
+    const slice = bytes.subarray(start, Math.min(start + partSize, bytes.length));
+    const put = await fetch(signedUrl, { method: "PUT", body: slice });
     if (!put.ok) return null;
+    const etag = put.headers.get("etag");
+    if (!etag) return null;
+    completed.push({ PartNumber: n, ETag: etag });
   }
 
-  const doneRes = await fanvueFetch(`/media/uploads/${uploadId}`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  }).catch(() => null);
-  const done = doneRes && doneRes.ok ? await doneRes.json() : null;
-  return done?.mediaUuid || done?.uuid || created.mediaUuid || created.uuid || uploadId || null;
+  const patchRes = await fanvueFetch(`/media/uploads/${uploadId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ parts: completed }),
+  });
+  if (!patchRes.ok) return null;
+  return mediaUuid;
 }
 
 export async function processChat(fanUuid: string, origin: string): Promise<boolean> {
@@ -191,7 +198,7 @@ async function reply(
       });
       if (photoRes.ok) {
         const url = (await photoRes.json()).photo as string;
-        const uuid = await uploadPhoto(fanUuid, url);
+        const uuid = await uploadPhoto(url);
         if (uuid && (await send({ mediaUuids: [uuid] })).ok) sent = true;
       }
     } catch (e) {
