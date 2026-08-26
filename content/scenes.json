@@ -1,0 +1,54 @@
+{
+  "imagePrefix": "Put these two characters together into one scene: [SCENE]. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene.",
+  "imageSuffix": "Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.",
+  "scenes": [
+    {
+      "name": "job-interview",
+      "types": ["estj", "infp"],
+      "scene": "a job interview in a modern office. The woman with the teal outfit and glasses (first reference) sits on the LEFT behind a desk with an open laptop, looking strict. The woman with the green hair and butterflies (second reference) sits on the RIGHT in front of the desk on a chair, nervous, hands in her lap",
+      "first": { "label": "WOMAN with GLASSES in the TEAL outfit on the LEFT", "voice": "sharp, fast, businesslike female", "line": "Where do you see yourself in five years?" },
+      "second": { "label": "WOMAN with the GREEN hair on the RIGHT", "voice": "soft, dreamy, hesitant female", "line": "Honestly? In a cottage. Writing a novel. Possibly a goat." },
+      "ambience": "Quiet office ambience"
+    },
+    {
+      "name": "grocery-shopping",
+      "types": ["istj", "enfp"],
+      "scene": "a supermarket aisle with shelves. The older man with glasses and the gray sweater (first reference) stands on the LEFT holding a small paper shopping list, frowning. The woman in the green outfit (second reference) stands on the RIGHT pushing a shopping cart overflowing with random items, including a small kayak sticking out, grinning",
+      "first": { "label": "older MAN with GLASSES in the GRAY sweater on the LEFT", "voice": "calm, precise, slightly annoyed male", "line": "The list has four items. Why is there a kayak?" },
+      "second": { "label": "WOMAN in the GREEN outfit on the RIGHT", "voice": "excited, fast, bubbly female", "line": "It was on sale and I felt something!" },
+      "ambience": "Quiet supermarket ambience"
+    },
+    {
+      "name": "house-party",
+      "types": ["esfj", "intp"],
+      "scene": "a living room house party with balloons and string lights. The man in the light blue outfit (first reference) stands on the LEFT holding a tray of snacks, smiling warmly. The woman with purple hair, glasses and a white lab coat (second reference) sits on the floor in the RIGHT corner next to a small cat, avoiding the party",
+      "first": { "label": "MAN in the LIGHT BLUE outfit on the LEFT", "voice": "warm, cheerful, welcoming male", "line": "Come mingle! Everyone's asking about you!" },
+      "second": { "label": "WOMAN with PURPLE hair and glasses on the RIGHT", "voice": "flat, curious, deadpan female", "line": "The cat and I are discussing black holes. It's going well." },
+      "ambience": "Muffled party chatter in the background"
+    },
+    {
+      "name": "car-lost",
+      "types": ["isfj", "entp"],
+      "scene": "the inside of a car, seen from the front through the windshield. The woman in the blue nurse outfit (first reference) sits on the LEFT in the driver seat holding the steering wheel, looking tired. The man in the purple outfit (second reference) sits on the RIGHT in the passenger seat holding a large unfolded paper map upside down, grinning confidently. A roundabout is visible outside",
+      "first": { "label": "MAN in the PURPLE outfit on the RIGHT", "voice": "playful, confident, cheeky male", "line": "Technically we're not lost, we're exploring." },
+      "second": { "label": "WOMAN in the BLUE outfit on the LEFT", "voice": "tired, gentle, patient female", "line": "We've explored this roundabout six times." },
+      "ambience": "Quiet car engine hum"
+    },
+    {
+      "name": "therapy-session",
+      "types": ["enfj", "istp"],
+      "scene": "a cozy therapy office. The man in the green cape (first reference) sits on the LEFT in an armchair holding a notepad and pen, leaning forward attentively. The man in the yellow work outfit with the yellow hard hat and safety glasses (second reference) lies on the RIGHT on a therapy couch with his arms crossed, unimpressed",
+      "first": { "label": "MAN in the GREEN cape on the LEFT", "voice": "warm, caring, gentle male", "line": "And how did that make you feel?" },
+      "second": { "label": "MAN in the YELLOW hard hat on the RIGHT", "voice": "dry, low, monotone male", "line": "I fixed the sink instead. Problem solved." },
+      "ambience": "Quiet room ambience with a ticking clock"
+    },
+    {
+      "name": "gym",
+      "types": ["estp", "infj"],
+      "scene": "a gym with weight racks. The man in the yellow outfit with sunglasses (first reference) stands on the LEFT flexing next to a heavy barbell, hyped. The old man with the white beard in the green robe (second reference) sits on the RIGHT on a workout bench calmly holding a small book and a water bottle",
+      "first": { "label": "MAN in YELLOW with SUNGLASSES on the LEFT", "voice": "loud, hyped, energetic male", "line": "One more set! No excuses! Let's GO!" },
+      "second": { "label": "OLD MAN with the WHITE beard on the RIGHT", "voice": "quiet, slow, thoughtful old male", "line": "I came here to think. The bench is very comfortable." },
+      "ambience": "Faint gym ambience with clanking weights"
+    }
+  ]
+}

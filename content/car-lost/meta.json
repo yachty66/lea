@@ -1,0 +1,24 @@
+{
+  "name": "car-lost",
+  "types": [
+    "isfj",
+    "entp"
+  ],
+  "scene": "the inside of a car, seen from the front through the windshield. The woman in the blue nurse outfit (first reference) sits on the LEFT in the driver seat holding the steering wheel, looking tired. The man in the purple outfit (second reference) sits on the RIGHT in the passenger seat holding a large unfolded paper map upside down, grinning confidently. A roundabout is visible outside",
+  "first": {
+    "label": "MAN in the PURPLE outfit on the RIGHT",
+    "voice": "playful, confident, cheeky male",
+    "line": "Technically we're not lost, we're exploring."
+  },
+  "second": {
+    "label": "WOMAN in the BLUE outfit on the LEFT",
+    "voice": "tired, gentle, patient female",
+    "line": "We've explored this roundabout six times."
+  },
+  "ambience": "Quiet car engine hum",
+  "imagePrompt": "Put these two characters together into one scene: the inside of a car, seen from the front through the windshield. The woman in the blue nurse outfit (first reference) sits on the LEFT in the driver seat holding the steering wheel, looking tired. The man in the purple outfit (second reference) sits on the RIGHT in the passenger seat holding a large unfolded paper map upside down, grinning confidently. A roundabout is visible outside. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene. Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.",
+  "files": [
+    "/Users/maxhager/projects/lea/content/car-lost/frame.png"
+  ],
+  "seconds": 24.904
+}

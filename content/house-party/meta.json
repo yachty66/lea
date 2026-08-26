@@ -1,0 +1,24 @@
+{
+  "name": "house-party",
+  "types": [
+    "esfj",
+    "intp"
+  ],
+  "scene": "a living room house party with balloons and string lights. The man in the light blue outfit (first reference) stands on the LEFT holding a tray of snacks, smiling warmly. The woman with purple hair, glasses and a white lab coat (second reference) sits on the floor in the RIGHT corner next to a small cat, avoiding the party",
+  "first": {
+    "label": "MAN in the LIGHT BLUE outfit on the LEFT",
+    "voice": "warm, cheerful, welcoming male",
+    "line": "Come mingle! Everyone's asking about you!"
+  },
+  "second": {
+    "label": "WOMAN with PURPLE hair and glasses on the RIGHT",
+    "voice": "flat, curious, deadpan female",
+    "line": "The cat and I are discussing black holes. It's going well."
+  },
+  "ambience": "Muffled party chatter in the background",
+  "imagePrompt": "Put these two characters together into one scene: a living room house party with balloons and string lights. The man in the light blue outfit (first reference) stands on the LEFT holding a tray of snacks, smiling warmly. The woman with purple hair, glasses and a white lab coat (second reference) sits on the floor in the RIGHT corner next to a small cat, avoiding the party. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene. Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.",
+  "files": [
+    "/Users/maxhager/projects/lea/content/house-party/frame.png"
+  ],
+  "seconds": 21.48
+}
