@@ -5,14 +5,27 @@ const HISTORY = 24;
 
 // Atomically claim a fan message so only one concurrent trigger (webhook + poll,
 // or duplicate webhook deliveries) ever replies to it. Returns true if we won.
+export async function dbg(source: string, note: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    await neon(process.env.DATABASE_URL)`insert into fanvue_debug (source, note) values (${source}, ${note})`;
+  } catch {
+    /* ignore */
+  }
+}
+
 async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
-  if (!process.env.DATABASE_URL) return true;
+  if (!process.env.DATABASE_URL) {
+    await dbg("claim", "NO DATABASE_URL - cannot dedup");
+    return false; // refuse to proceed rather than risk a duplicate
+  }
   const sql = neon(process.env.DATABASE_URL);
   const rows = await sql`
     insert into fanvue_handled (fan_uuid, message_uuid)
     values (${fanUuid}, ${messageUuid})
     on conflict do nothing
     returning message_uuid`;
+  await dbg("claim", `msg=${messageUuid.slice(0, 8)} rows=${rows.length}`);
   return rows.length > 0;
 }
 
@@ -167,6 +180,7 @@ async function reply(
 
   // 1) Text first — arrives fast, before the slow photo work.
   if (text) {
+    await dbg("send", `text for last=${lastUuid.slice(0, 8)}`);
     if ((await send({ text })).ok) sent = true;
   }
 
