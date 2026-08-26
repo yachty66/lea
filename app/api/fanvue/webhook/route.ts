@@ -1,6 +1,6 @@
 import { after } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { sweepUnread, dbg } from "@/lib/fanvue-chat";
+import { sweepUnread } from "@/lib/fanvue-chat";
 
 export const maxDuration = 90;
 
@@ -44,7 +44,6 @@ export async function POST(request: Request) {
     : new URL(request.url).origin;
 
   if (secret && event.type && MESSAGE_EVENTS.has(event.type)) {
-    await dbg("webhook", `event=${event.type}`);
     // Ack immediately, generate + send the reply after responding.
     after(async () => {
       try {
