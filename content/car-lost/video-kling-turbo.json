@@ -1,0 +1,8 @@
+{
+  "model": "fal-ai/kling-video/v3/turbo/pro/image-to-video",
+  "prompt": "Low-poly papercraft animation, static camera, keep both characters exactly as in the image.\n\nThe MAN in the PURPLE outfit on the LEFT speaks first, in a playful, confident, cheeky male voice, while the other's mouth stays closed: \"Technically we're not lost, we're exploring.\"\n\nThen the WOMAN in the BLUE outfit on the RIGHT replies, in a tired, gentle, patient female voice, while the other's mouth stays closed: \"We've explored this roundabout six times.\"\n\nOnly the speaking character moves their lips. Quiet car engine hum, no music, no subtitles.",
+  "duration": "8",
+  "url": "https://v3b.fal.media/files/b/0aa7e1b5/vlaDTBfl4g-HhUkjLJPz3_output.mp4",
+  "requestId": "01a03ddf-10ca-7513-bfc7-08f077279284",
+  "seconds": 1118.527
+}

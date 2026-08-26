@@ -51,6 +51,9 @@ export default function Chat() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [photo, setPhoto] = useState(0);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [gallery, setGallery] = useState<string[]>([]);
+  const [showGallery, setShowGallery] = useState(false);
+  const galleryKey = useRef<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
   const lastReply = useRef(-1);
@@ -62,6 +65,7 @@ export default function Chat() {
       new URLSearchParams(window.location.search).has("preview")
     ) {
       setUser({ id: "preview" });
+      galleryKey.current = "lea-gallery-preview";
       setMsgs([{ id: 0, who: "in", text: OPENER }]);
       setReady(true);
       return;
@@ -76,6 +80,15 @@ export default function Chat() {
         }
         setUser(u);
         posthog.identify(u.id, { email: u.email, name: u.name });
+        galleryKey.current = `lea-gallery-${u.id}`;
+        const savedGallery = window.localStorage.getItem(galleryKey.current);
+        if (savedGallery) {
+          try {
+            setGallery(JSON.parse(savedGallery) as string[]);
+          } catch {
+            /* ignore */
+          }
+        }
         const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
         let initial: Msg[];
         if (saved) {
@@ -126,6 +139,17 @@ export default function Chat() {
     setTyping(false);
     setMsgs([{ id: 0, who: "in", text: OPENER }]);
     posthog.capture("chat_reset");
+  };
+
+  const collectPhoto = (url: string) => {
+    setGallery((current) => {
+      if (current.includes(url)) return current;
+      const next = [url, ...current];
+      if (galleryKey.current) {
+        window.localStorage.setItem(galleryKey.current, JSON.stringify(next));
+      }
+      return next;
+    });
   };
 
   const signOut = async () => {
@@ -254,6 +278,7 @@ export default function Chat() {
             ...current,
             { id: nextId.current++, who: "in", text: "", photo: data.photo },
           ]);
+          collectPhoto(data.photo);
           playPing();
         }
       } catch (error) {
@@ -281,6 +306,11 @@ export default function Chat() {
             <p className="chat-name">Lea</p>
             <p className="chat-status">online</p>
           </div>
+          {gallery.length > 0 && (
+            <button type="button" className="chat-out" onClick={() => setShowGallery(true)}>
+              sammlung ({gallery.length})
+            </button>
+          )}
           <button type="button" className="chat-out" onClick={resetChat}>
             {confirmReset ? "sicher?" : "neu anfangen"}
           </button>
@@ -390,6 +420,29 @@ export default function Chat() {
           </p>
         </div>
       </aside>
+
+      {showGallery && (
+        <div className="gallery-overlay" onClick={() => setShowGallery(false)}>
+          <div className="gallery-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="gallery-head">
+              <h3>deine sammlung</h3>
+              <button
+                type="button"
+                className="gallery-close"
+                aria-label="Schließen"
+                onClick={() => setShowGallery(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="gallery-grid">
+              {gallery.map((url) => (
+                <img key={url} src={url} alt="" onClick={() => setLightbox(url)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {lightbox && (
         <div className="lightbox" onClick={() => setLightbox(null)}>
