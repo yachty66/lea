@@ -156,9 +156,23 @@ async function reply(
   if (!chatRes.ok) throw new Error(`chat ${chatRes.status}`);
   const result = await chatRes.json();
   const text = (result.text ?? "").trim();
+  const wantsPhoto = typeof result.photoPrompt === "string";
 
-  let mediaUuids: string[] | undefined;
-  if (typeof result.photoPrompt === "string") {
+  const send = (body: Record<string, unknown>) =>
+    fanvueFetch(`/chats/${fanUuid}/message`, { method: "POST", body: JSON.stringify(body) });
+
+  let sent = false;
+
+  // 1) Text first — arrives fast, before the slow photo work.
+  if (text) {
+    const r = await send({ text });
+    if (!r.ok) throw new Error(`send text ${r.status}`); // release + retry
+    sent = true;
+  }
+
+  // 2) Photo as a follow-up message (generation + upload is the slow part, so it
+  //    never holds up the text). Failure here doesn't undo the text reply.
+  if (wantsPhoto) {
     try {
       const photoRes = await internal("/api/photo", origin, {
         description: result.photoPrompt || "casual selfie, soft light",
@@ -166,24 +180,18 @@ async function reply(
       if (photoRes.ok) {
         const url = (await photoRes.json()).photo as string;
         const uuid = await uploadPhoto(fanUuid, url);
-        if (uuid) mediaUuids = [uuid];
+        if (uuid && (await send({ mediaUuids: [uuid] })).ok) sent = true;
       }
-    } catch {
-      /* photo failed — fall through to text-only */
+    } catch (e) {
+      console.error("photo follow-up failed:", (e as Error).message);
     }
   }
 
-  const sendBody: Record<string, unknown> = {};
-  if (text) sendBody.text = text;
-  if (mediaUuids) sendBody.mediaUuids = mediaUuids;
-  // Never ghost the fan: if a photo-only reply's upload failed, send a line anyway.
-  if (!text && !mediaUuids) sendBody.text = "sek, handy hängt grad 🙈 was wolltest du sehen?";
-
-  const sendRes = await fanvueFetch(`/chats/${fanUuid}/message`, {
-    method: "POST",
-    body: JSON.stringify(sendBody),
-  });
-  if (!sendRes.ok) throw new Error(`send ${sendRes.status}`);
+  // 3) Never ghost the fan.
+  if (!sent) {
+    const r = await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" });
+    if (!r.ok) throw new Error(`send fallback ${r.status}`);
+  }
   return true;
 }
 
