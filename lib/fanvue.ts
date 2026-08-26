@@ -10,6 +10,24 @@ function db() {
   return neon(process.env.DATABASE_URL!);
 }
 
+function basicAuth() {
+  const creds = `${process.env.FANVUE_CLIENT_ID}:${process.env.FANVUE_CLIENT_SECRET}`;
+  return `Basic ${Buffer.from(creds).toString("base64")}`;
+}
+
+async function tokenRequest(body: URLSearchParams) {
+  const res = await fetch(FANVUE_TOKEN, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: basicAuth(),
+    },
+    body,
+  });
+  if (!res.ok) throw new Error(`token exchange failed ${res.status} ${(await res.text()).slice(0, 300)}`);
+  return res.json();
+}
+
 export async function saveTokens(refreshToken: string, accessToken: string, expiresIn: number) {
   const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
   const sql = db();
@@ -24,21 +42,14 @@ export async function saveTokens(refreshToken: string, accessToken: string, expi
 }
 
 export async function exchangeCode(code: string, codeVerifier: string) {
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: process.env.FANVUE_REDIRECT_URI!,
-    client_id: process.env.FANVUE_CLIENT_ID!,
-    client_secret: process.env.FANVUE_CLIENT_SECRET!,
-    code_verifier: codeVerifier,
-  });
-  const res = await fetch(FANVUE_TOKEN, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) throw new Error(`token exchange failed ${res.status} ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
+  const data = await tokenRequest(
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: process.env.FANVUE_REDIRECT_URI!,
+      code_verifier: codeVerifier,
+    })
+  );
   await saveTokens(data.refresh_token, data.access_token, data.expires_in ?? 3600);
   return data;
 }
@@ -55,19 +66,12 @@ export async function getAccessToken(): Promise<string> {
     return row.access_token;
   }
 
-  const body = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token: row.refresh_token,
-    client_id: process.env.FANVUE_CLIENT_ID!,
-    client_secret: process.env.FANVUE_CLIENT_SECRET!,
-  });
-  const res = await fetch(FANVUE_TOKEN, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) throw new Error(`fanvue refresh failed ${res.status} ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
+  const data = await tokenRequest(
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: row.refresh_token,
+    })
+  );
   await saveTokens(data.refresh_token ?? row.refresh_token, data.access_token, data.expires_in ?? 3600);
   return data.access_token as string;
 }
