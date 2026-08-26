@@ -89,6 +89,20 @@ export default function Chat() {
             /* ignore */
           }
         }
+        // Neon is the source of truth: pull the full cross-device collection.
+        fetch("/api/gallery")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (Array.isArray(data?.photos) && data.photos.length) {
+              setGallery(data.photos as string[]);
+              if (galleryKey.current) {
+                window.localStorage.setItem(galleryKey.current, JSON.stringify(data.photos));
+              }
+            }
+          })
+          .catch(() => {
+            /* keep local cache */
+          });
         const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
         let initial: Msg[];
         if (saved) {
