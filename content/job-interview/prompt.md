@@ -4,7 +4,7 @@
 
 ## Image prompt (nano-banana-2/edit)
 
-Put these two characters together into one scene: a job interview in a modern office. The woman with the teal outfit and glasses (first reference) sits on the LEFT behind a desk with an open laptop, looking strict. The woman with the green hair and butterflies (second reference) sits on the RIGHT in front of the desk on a chair, nervous, hands in her lap. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene. Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.
+can you make the two sit at a desk in a job interview, the first one is the interviewer with a laptop, the second one is the candidate. remove anything they hold. no other people in the background 
 
 ## Seedance 2.0 prompt
 

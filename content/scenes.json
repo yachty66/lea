@@ -48,12 +48,12 @@
       ],
       "scene": "can you make the two be at a house party, the first one holds a snack tray, the second one sits on the floor in a corner with a cat. remove anything else they hold. no other people in the background",
       "first": {
-        "label": "MAN in the LIGHT BLUE outfit on the LEFT",
+        "label": "MAN in the LIGHT BLUE outfit on the RIGHT",
         "voice": "warm, cheerful, welcoming male",
         "line": "Come mingle! Everyone's asking about you!"
       },
       "second": {
-        "label": "WOMAN with PURPLE hair and glasses on the RIGHT",
+        "label": "WOMAN with PURPLE hair and glasses on the LEFT",
         "voice": "flat, curious, deadpan female",
         "line": "The cat and I are discussing black holes. It's going well."
       },

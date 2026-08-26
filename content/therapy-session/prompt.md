@@ -4,7 +4,7 @@
 
 ## Image prompt (nano-banana-2/edit)
 
-Put these two characters together into one scene: a cozy therapy office. The man in the green cape (first reference) sits on the LEFT in an armchair holding a notepad and pen, leaning forward attentively. The man in the yellow work outfit with the yellow hard hat and safety glasses (second reference) lies on the RIGHT on a therapy couch with his arms crossed, unimpressed. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene. Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.
+can you make the two be in a therapy session, the first one sits in an armchair with a notepad, the second one lies on the couch. remove anything else they hold. no other people in the background 
 
 ## Seedance 2.0 prompt
 
