@@ -27,7 +27,7 @@
         "istj",
         "enfp"
       ],
-      "scene": "can you make the two stand in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. remove anything else they hold. no other people in the background",
+      "scene": "can you make the first two characters stand close together in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. use exactly the art style of the third image: muted colors, everything low poly faceted, no outlines, close up. remove anything else they hold. no other people in the background",
       "first": {
         "label": "older MAN with GLASSES in the GRAY sweater on the LEFT",
         "voice": "calm, precise, slightly annoyed male",
@@ -38,7 +38,8 @@
         "voice": "excited, fast, bubbly female",
         "line": "It was on sale and I felt something!"
       },
-      "ambience": "Quiet supermarket ambience"
+      "ambience": "Quiet supermarket ambience",
+      "styleRef": "car-lost/frame.png"
     },
     {
       "name": "house-party",

@@ -16,9 +16,10 @@
     "line": "It was on sale and I felt something!"
   },
   "ambience": "Quiet supermarket ambience",
-  "imagePrompt": "can you make the two stand in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. remove anything else they hold. no other people in the background ",
+  "imagePrompt": "can you make the first two characters stand close together in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. use exactly the art style of the third image: muted colors, everything low poly faceted, no outlines, close up. remove anything else they hold. no other people in the background",
   "files": [
     "/Users/maxhager/projects/lea/content/grocery-shopping/frame.png"
   ],
-  "seconds": 31.403
+  "seconds": 31.403,
+  "styleRef": "content/car-lost/frame.png"
 }

@@ -4,7 +4,9 @@
 
 ## Image prompt (nano-banana-2/edit)
 
-can you make the two stand in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. remove anything else they hold. no other people in the background 
+can you make the first two characters stand close together in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. use exactly the art style of the third image: muted colors, everything low poly faceted, no outlines, close up. remove anything else they hold. no other people in the background
+
+(third reference image: car-lost/frame.png for style)
 
 ## Seedance 2.0 prompt
 
