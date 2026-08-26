@@ -3,14 +3,18 @@ import { getSessionUser } from "@/lib/auth/server";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV !== "development") {
+  const isService =
+    !!process.env.LEA_SERVICE_SECRET &&
+    request.headers.get("x-lea-service") === process.env.LEA_SERVICE_SECRET;
+  if (!isService && process.env.NODE_ENV !== "development") {
     const user = await getSessionUser();
     if (!user) return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
   const image = typeof body?.image === "string" ? body.image : "";
-  if (!image.startsWith("data:image/") || image.length > 3_000_000) {
+  const ok = image.startsWith("data:image/") || image.startsWith("https://");
+  if (!ok || image.length > 3_000_000) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
 
