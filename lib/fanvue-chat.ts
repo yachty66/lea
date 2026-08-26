@@ -17,6 +17,18 @@ export async function claimEvent(eventId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+// Queue a photo for the always-on worker to generate + upload + send. Photo
+// generation is too slow (~40s) to run inside the serverless webhook.
+async function enqueuePhoto(fanUuid: string, prompt: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    await neon(process.env.DATABASE_URL)`
+      insert into fanvue_photo_jobs (fan_uuid, prompt) values (${fanUuid}, ${prompt})`;
+  } catch {
+    /* ignore */
+  }
+}
+
 async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
   if (!process.env.DATABASE_URL) return false; // refuse rather than risk a duplicate
   const sql = neon(process.env.DATABASE_URL);
@@ -70,50 +82,6 @@ async function describeInbound(fanUuid: string, messageUuid: string, origin: str
   } catch {
     return "";
   }
-}
-
-// S3 multipart upload of an image to Fanvue's media store, per their docs:
-// create session -> for each part fetch a presigned URL, PUT the slice, keep the
-// ETag -> PATCH to complete with the ETags. Returns the permanent mediaUuid.
-async function uploadPhoto(imageUrl: string): Promise<string | null> {
-  const img = await fetch(imageUrl);
-  if (!img.ok) return null;
-  const bytes = Buffer.from(await img.arrayBuffer());
-  const filename = `lea-${Date.now()}.jpg`;
-
-  const createdRes = await fanvueFetch("/media/uploads", {
-    method: "POST",
-    body: JSON.stringify({ name: filename, filename, mediaType: "image", sizeBytes: bytes.length }),
-  });
-  if (!createdRes.ok) return null;
-  const { mediaUuid, uploadId, partSize, totalParts } = (await createdRes.json()) as {
-    mediaUuid: string;
-    uploadId: string;
-    partSize: number;
-    totalParts: number | null;
-  };
-  const parts = totalParts ?? Math.max(1, Math.ceil(bytes.length / partSize));
-
-  const completed: { PartNumber: number; ETag: string }[] = [];
-  for (let n = 1; n <= parts; n++) {
-    const urlRes = await fanvueFetch(`/media/uploads/${uploadId}/parts/${n}/url`);
-    if (!urlRes.ok) return null;
-    const signedUrl = (await urlRes.text()).trim().replace(/^"|"$/g, "");
-    const start = (n - 1) * partSize;
-    const slice = bytes.subarray(start, Math.min(start + partSize, bytes.length));
-    const put = await fetch(signedUrl, { method: "PUT", body: slice });
-    if (!put.ok) return null;
-    const etag = put.headers.get("etag");
-    if (!etag) return null;
-    completed.push({ PartNumber: n, ETag: etag });
-  }
-
-  const patchRes = await fanvueFetch(`/media/uploads/${uploadId}`, {
-    method: "PATCH",
-    body: JSON.stringify({ parts: completed }),
-  });
-  if (!patchRes.ok) return null;
-  return mediaUuid;
 }
 
 export async function processChat(fanUuid: string, origin: string): Promise<boolean> {
@@ -189,21 +157,12 @@ async function reply(
     if ((await send({ text })).ok) sent = true;
   }
 
-  // 2) Photo as a follow-up message (generation + upload is the slow part, so it
-  //    never holds up the text). Failure here NEVER undoes the text reply.
+  // 2) Photo: queue it for the always-on worker (generation is ~40s, too slow
+  //    for this serverless function). The worker generates, uploads and sends it
+  //    as a follow-up message. The text reply above already counts as sent.
   if (wantsPhoto) {
-    try {
-      const photoRes = await internal("/api/photo", origin, {
-        description: (result.photoPrompt as string) || "casual selfie, soft light",
-      });
-      if (photoRes.ok) {
-        const url = (await photoRes.json()).photo as string;
-        const uuid = await uploadPhoto(url);
-        if (uuid && (await send({ mediaUuids: [uuid] })).ok) sent = true;
-      }
-    } catch (e) {
-      console.error("photo follow-up failed:", (e as Error).message);
-    }
+    await enqueuePhoto(fanUuid, (result.photoPrompt as string) || "casual selfie, soft light");
+    sent = true;
   }
 
   // 3) Never ghost the fan — but only if we truly sent nothing.
