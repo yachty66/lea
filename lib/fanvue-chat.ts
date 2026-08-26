@@ -187,15 +187,23 @@ async function reply(
   return true;
 }
 
-// Fallback safety-net: answer any unread chat.
+// Answer any chat whose latest message is from the fan. We can't rely on the
+// unread flag (reading messages via the API clears it), so we look at the last
+// message's sender on the chat list instead. The per-message claim dedupes.
 export async function sweepUnread(origin: string): Promise<number> {
-  const res = await fanvueFetch(`/chats?filter=unread&sortBy=most_recent_messages&size=20`);
+  const me = await selfUuid();
+  const res = await fanvueFetch(`/chats?sortBy=most_recent_messages&size=20`);
   if (!res.ok) return 0;
-  const chats = ((await res.json()).data ?? []) as { user?: { uuid?: string } }[];
+  const chats = ((await res.json()).data ?? []) as {
+    user?: { uuid?: string };
+    lastMessage?: { senderUuid?: string } | null;
+  }[];
   let handled = 0;
   for (const c of chats) {
     const fanUuid = c.user?.uuid;
-    if (!fanUuid) continue;
+    const sender = c.lastMessage?.senderUuid;
+    // Only chats where the fan spoke last and we haven't answered.
+    if (!fanUuid || !sender || sender === me) continue;
     try {
       if (await processChat(fanUuid, origin)) handled++;
     } catch (e) {
