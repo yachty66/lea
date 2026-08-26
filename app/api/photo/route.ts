@@ -6,8 +6,12 @@ import { generatePhoto, fallbackPhoto } from "@/lib/photo";
 export const maxDuration = 90;
 
 export async function POST(request: Request) {
-  const user = process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
-  if (process.env.NODE_ENV !== "development" && !user) {
+  const isService =
+    !!process.env.LEA_SERVICE_SECRET &&
+    request.headers.get("x-lea-service") === process.env.LEA_SERVICE_SECRET;
+  const user =
+    !isService && process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
+  if (!isService && process.env.NODE_ENV !== "development" && !user) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 

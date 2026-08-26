@@ -114,8 +114,15 @@ export async function POST(request: Request) {
   const messages = sanitize(body?.messages);
   if (!messages) return Response.json({ error: "bad request" }, { status: 400 });
 
-  const user = process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
-  if (process.env.NODE_ENV !== "development" && !user) {
+  // Service callers (the Fanvue worker) authenticate with a shared secret and
+  // reuse this exact persona brain without a browser session.
+  const isService =
+    !!process.env.LEA_SERVICE_SECRET &&
+    request.headers.get("x-lea-service") === process.env.LEA_SERVICE_SECRET;
+
+  const user =
+    !isService && process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
+  if (!isService && process.env.NODE_ENV !== "development" && !user) {
     const fromHim = messages.filter((msg) => msg.role === "user").length;
     const withinTeaser =
       fromHim <= TEASER_LIMIT && messages.length <= TEASER_LIMIT * 2 + 1;
