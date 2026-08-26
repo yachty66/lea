@@ -25,13 +25,21 @@ const sql = neon(DB);
 
 async function generate(prompt) {
   const full =
-    `Photorealistic phone photo of the exact same woman from the reference image. ` +
-    `Preserve her exact face, freckles, green-hazel eyes, blonde messy hair, gold hoop earrings, thin gold necklace and body proportions. ` +
-    `Scene: ${prompt}. Fully clothed, everyday casual content. Candid amateur phone-photo aesthetic, realistic skin texture, photorealistic.`;
-  const res = await fetch("https://fal.run/fal-ai/nano-banana/edit", {
+    `Image 1 is the character reference sheet of a woman. Create a photorealistic photo of the exact same woman. ` +
+    `Preserve her exact face, freckles, green-hazel eyes, blonde messy hair, gold hoop earrings, thin gold necklace and body proportions from Image 1. ` +
+    `Scene: ${prompt}. She stays fully clothed, everyday casual content. Shot on a phone, candid amateur photo aesthetic, realistic skin texture, photorealistic.`;
+  const res = await fetch("https://fal.run/fal-ai/hunyuan-image/v3/instruct/edit", {
     method: "POST",
     headers: { Authorization: `Key ${FAL_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: full, image_urls: [REF], num_images: 1 }),
+    body: JSON.stringify({
+      prompt: full,
+      image_urls: [REF],
+      image_size: { width: 768, height: 1024 },
+      num_images: 1,
+      output_format: "jpeg",
+      enable_safety_checker: false,
+      enable_prompt_expansion: false,
+    }),
   });
   if (!res.ok) throw new Error(`fal ${res.status} ${(await res.text()).slice(0, 120)}`);
   const url = (await res.json())?.images?.[0]?.url;
