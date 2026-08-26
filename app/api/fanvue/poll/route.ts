@@ -1,4 +1,4 @@
-import { sweepUnread, dbg } from "@/lib/fanvue-chat";
+import { sweepUnread } from "@/lib/fanvue-chat";
 
 export const maxDuration = 90;
 
@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       ? "https://leaberlin.com"
       : new URL(request.url).origin;
     const handled = await sweepUnread(origin);
-    if (handled) await dbg("poll", `handled=${handled}`);
     return Response.json({ handled });
   } catch (error) {
     return Response.json({ error: String(error).slice(0, 200) }, { status: 502 });

@@ -5,15 +5,6 @@ const HISTORY = 24;
 
 // Atomically claim a fan message so only one concurrent trigger (webhook + poll,
 // or duplicate webhook deliveries) ever replies to it. Returns true if we won.
-export async function dbg(source: string, note: string): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
-  try {
-    await neon(process.env.DATABASE_URL)`insert into fanvue_debug (source, note) values (${source}, ${note})`;
-  } catch {
-    /* ignore */
-  }
-}
-
 async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
   if (!process.env.DATABASE_URL) return true;
   const sql = neon(process.env.DATABASE_URL);
@@ -115,9 +106,7 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
   const last = ordered[ordered.length - 1];
   if (!last || last.sender?.uuid === me) return false; // nothing new / we already answered
 
-  const won = await claim(fanUuid, last.uuid);
-  await dbg("processChat", `last=${last.uuid.slice(0, 8)} claim=${won}`);
-  if (!won) return false;
+  if (!(await claim(fanUuid, last.uuid))) return false;
   return runReply(fanUuid, last.uuid, ordered, me, origin);
 }
 
@@ -130,11 +119,9 @@ async function runReply(
   origin: string
 ): Promise<boolean> {
   try {
-    const sent = await reply(fanUuid, lastUuid, ordered, me, origin);
-    await dbg("runReply", `last=${lastUuid.slice(0, 8)} sent=${sent}`);
-    return sent;
+    return await reply(fanUuid, lastUuid, ordered, me, origin);
   } catch (e) {
-    await dbg("runReply", `last=${lastUuid.slice(0, 8)} error=${(e as Error).message.slice(0, 60)}`);
+    console.error("reply error (claim kept):", (e as Error).message);
     return false;
   }
 }
