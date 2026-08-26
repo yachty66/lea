@@ -16,6 +16,17 @@ async function claim(fanUuid: string, messageUuid: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+// Release a claim so a later trigger can retry, when we failed to actually reply.
+async function release(fanUuid: string, messageUuid: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    await sql`delete from fanvue_handled where fan_uuid = ${fanUuid} and message_uuid = ${messageUuid}`;
+  } catch {
+    /* ignore */
+  }
+}
+
 type FanvueMessage = {
   uuid: string;
   text?: string | null;
@@ -109,6 +120,22 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
   // Win the exclusive claim on this fan message, or bail (someone else has it).
   if (!(await claim(fanUuid, last.uuid))) return false;
 
+  try {
+    return await reply(fanUuid, last.uuid, ordered, me, origin);
+  } catch (e) {
+    await release(fanUuid, last.uuid); // let a later trigger retry
+    console.error("reply failed, released claim:", (e as Error).message);
+    return false;
+  }
+}
+
+async function reply(
+  fanUuid: string,
+  lastUuid: string,
+  ordered: FanvueMessage[],
+  me: string,
+  origin: string
+): Promise<boolean> {
   const history: { role: "user" | "assistant"; content: string }[] = [];
   for (const m of ordered) {
     const fromFan = m.sender?.uuid !== me;
@@ -120,18 +147,21 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
     if (!content) continue;
     history.push({ role: fromFan ? "user" : "assistant", content });
   }
-  if (!history.length || history[history.length - 1].role !== "user") return false;
+  if (!history.length || history[history.length - 1].role !== "user") {
+    await release(fanUuid, lastUuid);
+    return false;
+  }
 
   const chatRes = await internal("/api/chat", origin, { messages: history });
-  if (!chatRes.ok) return false;
-  const reply = await chatRes.json();
-  const text = (reply.text ?? "").trim();
+  if (!chatRes.ok) throw new Error(`chat ${chatRes.status}`);
+  const result = await chatRes.json();
+  const text = (result.text ?? "").trim();
 
   let mediaUuids: string[] | undefined;
-  if (typeof reply.photoPrompt === "string") {
+  if (typeof result.photoPrompt === "string") {
     try {
       const photoRes = await internal("/api/photo", origin, {
-        description: reply.photoPrompt || "casual selfie, soft light",
+        description: result.photoPrompt || "casual selfie, soft light",
       });
       if (photoRes.ok) {
         const url = (await photoRes.json()).photo as string;
@@ -139,15 +169,21 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
         if (uuid) mediaUuids = [uuid];
       }
     } catch {
-      /* text-only fallback */
+      /* photo failed — fall through to text-only */
     }
   }
 
-  if (!text && !mediaUuids) return false;
   const sendBody: Record<string, unknown> = {};
   if (text) sendBody.text = text;
   if (mediaUuids) sendBody.mediaUuids = mediaUuids;
-  await fanvueFetch(`/chats/${fanUuid}/message`, { method: "POST", body: JSON.stringify(sendBody) });
+  // Never ghost the fan: if a photo-only reply's upload failed, send a line anyway.
+  if (!text && !mediaUuids) sendBody.text = "sek, handy hängt grad 🙈 was wolltest du sehen?";
+
+  const sendRes = await fanvueFetch(`/chats/${fanUuid}/message`, {
+    method: "POST",
+    body: JSON.stringify(sendBody),
+  });
+  if (!sendRes.ok) throw new Error(`send ${sendRes.status}`);
   return true;
 }
 
