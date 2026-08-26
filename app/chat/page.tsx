@@ -81,28 +81,7 @@ export default function Chat() {
         setUser(u);
         posthog.identify(u.id, { email: u.email, name: u.name });
         galleryKey.current = `lea-gallery-${u.id}`;
-        const savedGallery = window.localStorage.getItem(galleryKey.current);
-        if (savedGallery) {
-          try {
-            setGallery(JSON.parse(savedGallery) as string[]);
-          } catch {
-            /* ignore */
-          }
-        }
-        // Neon is the source of truth: pull the full cross-device collection.
-        fetch("/api/gallery")
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data) => {
-            if (Array.isArray(data?.photos) && data.photos.length) {
-              setGallery(data.photos as string[]);
-              if (galleryKey.current) {
-                window.localStorage.setItem(galleryKey.current, JSON.stringify(data.photos));
-              }
-            }
-          })
-          .catch(() => {
-            /* keep local cache */
-          });
+
         const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
         let initial: Msg[];
         if (saved) {
@@ -113,6 +92,47 @@ export default function Chat() {
         }
         setMsgs(initial);
         setReady(true);
+
+        // Build the collection as a UNION of every source we have, deduped:
+        // 1) local gallery cache  2) photos still in the chat history  3) Neon.
+        const merge = (...lists: string[][]) => {
+          const seen = new Set<string>();
+          const out: string[] = [];
+          for (const list of lists) {
+            for (const url of list) {
+              if (url && !seen.has(url)) {
+                seen.add(url);
+                out.push(url);
+              }
+            }
+          }
+          return out;
+        };
+        let cached: string[] = [];
+        try {
+          cached = JSON.parse(window.localStorage.getItem(galleryKey.current) || "[]") as string[];
+        } catch {
+          /* ignore */
+        }
+        const fromChat = initial.filter((m) => m.who === "in" && m.photo).map((m) => m.photo!);
+        const localMerged = merge(cached, fromChat);
+        setGallery(localMerged);
+        window.localStorage.setItem(galleryKey.current, JSON.stringify(localMerged));
+
+        fetch("/api/gallery")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (Array.isArray(data?.photos)) {
+              // Neon first (newest, durable), then anything local Neon doesn't have yet.
+              const full = merge(data.photos as string[], localMerged);
+              setGallery(full);
+              window.localStorage.setItem(galleryKey.current!, JSON.stringify(full));
+            }
+          })
+          .catch(() => {
+            /* keep local merge */
+          });
+
         const pending = window.localStorage.getItem("lea-pending");
         if (pending) {
           window.localStorage.removeItem("lea-pending");
