@@ -11,11 +11,11 @@ can you make the first two characters stand close together in a supermarket aisl
 ## Seedance 2.0 prompt
 
 ```
-Low-poly papercraft animation, static camera, keep both characters exactly as in the image.
+Low-poly papercraft animation, static camera, keep both characters exactly as in the image. Lively, energetic, comedic dialogue with big gestures and exaggerated facial expressions.
 
-The older MAN with GLASSES in the GRAY sweater on the LEFT speaks first, in a calm, precise, slightly annoyed male voice, while the other's mouth stays closed: "The list has four items. Why is there a kayak?"
+The older MAN with GLASSES in the GRAY sweater on the LEFT speaks first, in a calm, precise, slightly annoyed male voice, with big expressive gestures, while the other's mouth stays closed and they react: "The list has FOUR items. Why is there a KAYAK?!"
 
-Then the WOMAN in the GREEN outfit on the RIGHT replies, in a excited, fast, bubbly female voice, while the other's mouth stays closed: "It was on sale and I felt something!"
+Then the WOMAN in the GREEN outfit on the RIGHT replies, in a excited, fast, bubbly female voice, with big expressive gestures, while the other's mouth stays closed and they react: "It was on SALE and I felt SOMETHING!"
 
 Only the speaking character moves their lips. Quiet supermarket ambience, no music, no subtitles.
 ```

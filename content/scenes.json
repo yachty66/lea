@@ -12,12 +12,12 @@
       "first": {
         "label": "WOMAN with GLASSES in the TEAL outfit on the LEFT",
         "voice": "sharp, fast, businesslike female",
-        "line": "Where do you see yourself in five years?"
+        "line": "Where do you see yourself in FIVE years?"
       },
       "second": {
         "label": "WOMAN with the GREEN hair on the RIGHT",
         "voice": "soft, dreamy, hesitant female",
-        "line": "Honestly? In a cottage. Writing a novel. Possibly a goat."
+        "line": "Honestly? In a cottage. Writing a novel. Possibly... a GOAT."
       },
       "ambience": "Quiet office ambience"
     },
@@ -31,12 +31,12 @@
       "first": {
         "label": "older MAN with GLASSES in the GRAY sweater on the LEFT",
         "voice": "calm, precise, slightly annoyed male",
-        "line": "The list has four items. Why is there a kayak?"
+        "line": "The list has FOUR items. Why is there a KAYAK?!"
       },
       "second": {
         "label": "WOMAN in the GREEN outfit on the RIGHT",
         "voice": "excited, fast, bubbly female",
-        "line": "It was on sale and I felt something!"
+        "line": "It was on SALE and I felt SOMETHING!"
       },
       "ambience": "Quiet supermarket ambience",
       "styleRef": "car-lost/frame.png"
@@ -51,12 +51,12 @@
       "first": {
         "label": "MAN in the LIGHT BLUE outfit on the RIGHT",
         "voice": "warm, cheerful, welcoming male",
-        "line": "Come mingle! Everyone's asking about you!"
+        "line": "Come MINGLE! Everyone's asking about you!"
       },
       "second": {
         "label": "WOMAN with PURPLE hair and glasses on the LEFT",
         "voice": "flat, curious, deadpan female",
-        "line": "The cat and I are discussing black holes. It's going well."
+        "line": "The cat and I are discussing BLACK HOLES. It's going GREAT."
       },
       "ambience": "Muffled party chatter in the background"
     },
@@ -89,12 +89,12 @@
       "first": {
         "label": "MAN in the GREEN cape on the LEFT",
         "voice": "warm, caring, gentle male",
-        "line": "And how did that make you feel?"
+        "line": "And how did that make you FEEL?"
       },
       "second": {
         "label": "MAN in the YELLOW hard hat on the RIGHT",
         "voice": "dry, low, monotone male",
-        "line": "I fixed the sink instead. Problem solved."
+        "line": "I fixed the SINK instead. Problem SOLVED."
       },
       "ambience": "Quiet room ambience with a ticking clock"
     },
@@ -108,12 +108,12 @@
       "first": {
         "label": "MAN in YELLOW with SUNGLASSES on the LEFT",
         "voice": "loud, hyped, energetic male",
-        "line": "One more set! No excuses! Let's GO!"
+        "line": "ONE more set! NO excuses! Let's GO!"
       },
       "second": {
         "label": "OLD MAN with the WHITE beard on the RIGHT",
         "voice": "quiet, slow, thoughtful old male",
-        "line": "I came here to think. The bench is very comfortable."
+        "line": "I came here to THINK. The bench is very comfortable."
       },
       "ambience": "Faint gym ambience with clanking weights"
     }
