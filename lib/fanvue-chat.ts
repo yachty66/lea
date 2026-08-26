@@ -120,22 +120,21 @@ export async function processChat(fanUuid: string, origin: string): Promise<bool
   // Win the exclusive claim on this fan message, or bail (someone else has it).
   if (!(await claim(fanUuid, last.uuid))) return false;
 
-  try {
-    return await reply(fanUuid, last.uuid, ordered, me, origin);
-  } catch (e) {
-    await release(fanUuid, last.uuid); // let a later trigger retry
-    console.error("reply failed, released claim:", (e as Error).message);
-    return false;
-  }
+  // reply() never throws and never releases after a send, so a claim is only
+  // released when we sent NOTHING — which is the only safe time to allow a retry.
+  const status = await reply(fanUuid, ordered, me, origin);
+  if (status !== "sent") await release(fanUuid, last.uuid);
+  return status === "sent";
 }
+
+type ReplyStatus = "sent" | "retry" | "skip";
 
 async function reply(
   fanUuid: string,
-  lastUuid: string,
   ordered: FanvueMessage[],
   me: string,
   origin: string
-): Promise<boolean> {
+): Promise<ReplyStatus> {
   const history: { role: "user" | "assistant"; content: string }[] = [];
   for (const m of ordered) {
     const fromFan = m.sender?.uuid !== me;
@@ -147,14 +146,16 @@ async function reply(
     if (!content) continue;
     history.push({ role: fromFan ? "user" : "assistant", content });
   }
-  if (!history.length || history[history.length - 1].role !== "user") {
-    await release(fanUuid, lastUuid);
-    return false;
-  }
+  if (!history.length || history[history.length - 1].role !== "user") return "skip";
 
-  const chatRes = await internal("/api/chat", origin, { messages: history });
-  if (!chatRes.ok) throw new Error(`chat ${chatRes.status}`);
-  const result = await chatRes.json();
+  let result: { text?: string; photoPrompt?: unknown };
+  try {
+    const chatRes = await internal("/api/chat", origin, { messages: history });
+    if (!chatRes.ok) return "retry";
+    result = await chatRes.json();
+  } catch {
+    return "retry"; // brain failed before any send — safe to retry
+  }
   const text = (result.text ?? "").trim();
   const wantsPhoto = typeof result.photoPrompt === "string";
 
@@ -165,17 +166,20 @@ async function reply(
 
   // 1) Text first — arrives fast, before the slow photo work.
   if (text) {
-    const r = await send({ text });
-    if (!r.ok) throw new Error(`send text ${r.status}`); // release + retry
-    sent = true;
+    try {
+      if ((await send({ text })).ok) sent = true;
+    } catch {
+      /* handled below */
+    }
+    if (!sent) return "retry"; // text send failed and nothing sent yet — safe to retry
   }
 
   // 2) Photo as a follow-up message (generation + upload is the slow part, so it
-  //    never holds up the text). Failure here doesn't undo the text reply.
+  //    never holds up the text). Failure here NEVER undoes the text reply.
   if (wantsPhoto) {
     try {
       const photoRes = await internal("/api/photo", origin, {
-        description: result.photoPrompt || "casual selfie, soft light",
+        description: (result.photoPrompt as string) || "casual selfie, soft light",
       });
       if (photoRes.ok) {
         const url = (await photoRes.json()).photo as string;
@@ -187,12 +191,15 @@ async function reply(
     }
   }
 
-  // 3) Never ghost the fan.
+  // 3) Never ghost the fan — but only if we truly sent nothing.
   if (!sent) {
-    const r = await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" });
-    if (!r.ok) throw new Error(`send fallback ${r.status}`);
+    try {
+      if ((await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" })).ok) sent = true;
+    } catch {
+      /* fall through */
+    }
   }
-  return true;
+  return sent ? "sent" : "retry";
 }
 
 // Answer any chat whose latest message is from the fan. We can't rely on the
