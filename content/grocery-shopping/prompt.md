@@ -4,7 +4,7 @@
 
 ## Image prompt (nano-banana-2/edit)
 
-Put these two characters together into one scene: a supermarket aisle with shelves. The older man with glasses and the gray sweater (first reference) stands on the LEFT holding a small paper shopping list, frowning. The woman in the green outfit (second reference) stands on the RIGHT pushing a shopping cart overflowing with random items, including a small kayak sticking out, grinning. Keep their faces, hair, skin tone, glasses and outfit colors exactly as in the reference images. Remove any objects they are holding in the reference images (instruments, tools, weapons, books, cake, ruler, pen, drill, etc.); only add the props described in the scene. Same low-poly papercraft style, flat matte colors, faceted geometry, soft even lighting, no other people in the scene, vertical 9:16 composition with the characters in the lower two thirds of the frame.
+can you make the two stand in a supermarket aisle, the first one holds a shopping list, the second one pushes a full shopping cart. remove anything else they hold. no other people in the background 
 
 ## Seedance 2.0 prompt
 
