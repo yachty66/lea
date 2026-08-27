@@ -29,6 +29,20 @@ const SYSTEM = [
 
 const POST_HISTORY = persona.post_history_instructions;
 
+// leaberlin funnel URL (with tracking). The model never writes this itself; it
+// emits the [[fanvue]] token and the frontend renders the button.
+const FANVUE_URL = "https://www.fanvue.com/leaberlin?utm_source=leaberlin&utm_medium=chat";
+
+// Injected ONLY for the web teaser (never for the Fanvue bot, which already
+// lives on Fanvue). When he pushes for explicit content, Lea flirts and invites
+// him to her Fanvue via the [[fanvue]] token instead of showing nudes here.
+const CTA_INSTRUCTION = [
+  "wichtig (gilt nur hier):",
+  'du zeigst hier keine nudes und nichts explizites. wenn er in die richtung drängt (nudes, "zeig mehr", explizit, sexuell fordernd), dann flirt charmant, mach ihn neugierig und lade ihn EINMAL auf deinen fanvue ein, wo du ungefilterter bist.',
+  "setze dafür ganz ans ende der nachricht den token [[fanvue]]. der wird automatisch zu einem button. schreib NIE selbst einen link oder das wort fanvue.com und nenne keinen preis.",
+  "mach das nur wenn er wirklich danach drängt, nicht in jeder nachricht, und wenn du ihn gerade erst eingeladen hast, nerv nicht direkt nochmal.",
+].join("\n");
+
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -64,20 +78,24 @@ const DEFLECTIONS = [
   "du redest mit mir seit ewigkeiten und fragst sowas? 😭 ich sitz hier ganz normal in friedrichshain",
 ];
 
-function parseReply(raw: string) {
+function parseReply(raw: string, webCta: boolean) {
   const photoMatch = raw.match(/\[\[foto(?::([^\]]+))?\]\]/i);
+  const hasFanvue = /\[\[fanvue\]\]/i.test(raw);
   const text = raw
     .replace(/<\|[^|>]*\|>/g, "")
     .replace(/\[\[foto(?::[^\]]+)?\]\]/gi, "")
+    .replace(/\[\[fanvue\]\]/gi, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   const photoPrompt = photoMatch ? (photoMatch[1] ?? "").trim() : undefined;
-  if (!text && photoPrompt === undefined) throw new Error("empty");
-  return { text, photoPrompt };
+  const fanvueCta = webCta && hasFanvue;
+  if (!text && photoPrompt === undefined && !fanvueCta) throw new Error("empty");
+  return { text, photoPrompt, fanvueCta };
 }
 
 
-async function complete(messages: ChatMessage[]) {
+async function complete(messages: ChatMessage[], webCta: boolean) {
+  const system = webCta ? `${SYSTEM}\n\n${CTA_INSTRUCTION}` : SYSTEM;
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -87,7 +105,7 @@ async function complete(messages: ChatMessage[]) {
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: SYSTEM },
+        { role: "system", content: system },
         ...forModel(messages),
         { role: "system", content: POST_HISTORY },
       ],
@@ -104,7 +122,7 @@ async function complete(messages: ChatMessage[]) {
   const reply = data?.choices?.[0]?.message?.content;
   if (typeof reply !== "string" || !reply.trim()) throw new Error("empty");
   if (IDENTITY_LEAK.test(reply)) throw new Error(`identity leak: ${reply.slice(0, 120)}`);
-  return parseReply(reply);
+  return parseReply(reply, webCta);
 }
 
 const TEASER_LIMIT = 3;
@@ -119,6 +137,10 @@ export async function POST(request: Request) {
   const isService =
     !!process.env.LEA_SERVICE_SECRET &&
     request.headers.get("x-lea-service") === process.env.LEA_SERVICE_SECRET;
+
+  // The Fanvue funnel CTA only makes sense on the web teaser, never for the
+  // Fanvue bot (its users are already on Fanvue).
+  const webCta = !isService;
 
   const user =
     !isService && process.env.NODE_ENV !== "development" ? await getSessionUser() : null;
@@ -142,16 +164,19 @@ export async function POST(request: Request) {
     );
   };
 
+  const respond = (reply: { text: string; photoPrompt?: string; fanvueCta: boolean }) =>
+    Response.json(reply.fanvueCta ? { ...reply, fanvueUrl: FANVUE_URL } : reply);
+
   try {
-    const reply = await complete(messages);
+    const reply = await complete(messages, webCta);
     persist(reply.text);
-    return Response.json(reply);
+    return respond(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
-      const reply = await complete(messages);
+      const reply = await complete(messages, webCta);
       persist(reply.text);
-      return Response.json(reply);
+      return respond(reply);
     } catch (second) {
       console.error("openrouter retry failed:", second);
       if (String(second).includes("identity leak")) {

@@ -19,11 +19,14 @@ type Msg = {
   text: string;
   photo?: string;
   desc?: string;
+  cta?: boolean;
 };
 
 const OPENER = card.data.first_mes;
 
 const DISCORD_INVITE = "https://discord.gg/Yqe8F4yGs";
+
+const FANVUE_URL = "https://www.fanvue.com/leaberlin?utm_source=leaberlin&utm_medium=chat";
 
 const FALLBACKS = [
   "netz ist gerade weg. schick das nochmal?",
@@ -302,6 +305,7 @@ export default function Home() {
 
     let reply = "";
     let photoPrompt: string | undefined;
+    let fanvueCta = false;
     let failed = false;
     try {
       const response = await fetch("/api/chat", {
@@ -318,6 +322,7 @@ export default function Home() {
       const data = await response.json();
       reply = typeof data.text === "string" ? data.text : data.reply;
       photoPrompt = typeof data.photoPrompt === "string" ? data.photoPrompt : undefined;
+      fanvueCta = data.fanvueCta === true;
     } catch (error) {
       console.error("chat error:", error);
       failed = true;
@@ -327,11 +332,19 @@ export default function Home() {
       reply = FALLBACKS[pick];
     }
 
-    posthog.capture("reply_received", { with_photo: photoPrompt !== undefined, fallback: failed });
+    posthog.capture("reply_received", {
+      with_photo: photoPrompt !== undefined,
+      with_cta: fanvueCta,
+      fallback: failed,
+    });
 
     setTyping(false);
-    if (reply) {
-      setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
+    if (reply || fanvueCta) {
+      setMsgs((current) => [
+        ...current,
+        { id: nextId.current++, who: "in", text: reply, cta: fanvueCta || undefined },
+      ]);
+      if (fanvueCta) posthog.capture("fanvue_cta_shown");
       playPing();
     }
 
@@ -378,6 +391,16 @@ export default function Home() {
             <p className="chat-name">Lea</p>
             <p className="chat-status">online</p>
           </div>
+          <a
+            className="fanvue-chip"
+            href={FANVUE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Lea auf Fanvue"
+            onClick={() => posthog.capture("fanvue_cta_click", { where: "header" })}
+          >
+            🔥 exklusiv
+          </a>
           <a
             className="discord-chip"
             href={DISCORD_INVITE}
@@ -460,6 +483,18 @@ export default function Home() {
                 />
               )}
               {msg.text}
+              {msg.cta && (
+                <a
+                  className="fanvue-cta"
+                  href={FANVUE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => posthog.capture("fanvue_cta_click", { where: "bubble" })}
+                >
+                  <span>🔥 Lea auf Fanvue</span>
+                  <span className="fanvue-cta-arrow">→</span>
+                </a>
+              )}
             </div>
           ))}
           {typing && (

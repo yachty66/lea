@@ -948,6 +948,57 @@ footer {
   color: #5865f2;
 }
 
+.fanvue-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.fanvue-chip:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.fanvue-cta {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(255, 77, 109, 0.28);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.fanvue-cta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.fanvue-cta-arrow {
+  transition: transform 0.15s ease;
+}
+
+.fanvue-cta:hover .fanvue-cta-arrow {
+  transform: translateX(3px);
+}
+
 .auth-chip {
   display: flex;
   align-items: center;
