@@ -55,6 +55,7 @@ export default function Home() {
   const [showGallery, setShowGallery] = useState(false);
   const [wall, setWall] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const galleryKey = useRef<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
@@ -388,17 +389,57 @@ export default function Home() {
           </a>
           {user ? (
             <>
-              {gallery.length > 0 && (
-                <button type="button" className="chat-out" onClick={() => setShowGallery(true)}>
-                  sammlung ({gallery.length})
+              <div className="chat-actions">
+                {gallery.length > 0 && (
+                  <button type="button" className="chat-out" onClick={() => setShowGallery(true)}>
+                    sammlung ({gallery.length})
+                  </button>
+                )}
+                <button type="button" className="chat-out" onClick={resetChat}>
+                  {confirmReset ? "sicher?" : "neu anfangen"}
                 </button>
+                <button type="button" className="chat-out" onClick={signOut}>
+                  abmelden
+                </button>
+              </div>
+              <button
+                type="button"
+                className="chat-out chat-menu-btn"
+                aria-label="Menü"
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                ⋯
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="chat-menu-backdrop" onClick={() => setMenuOpen(false)} />
+                  <div className="chat-menu">
+                    {gallery.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowGallery(true);
+                          setMenuOpen(false);
+                        }}
+                      >
+                        sammlung ({gallery.length})
+                      </button>
+                    )}
+                    <button type="button" onClick={resetChat}>
+                      {confirmReset ? "sicher?" : "neu anfangen"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        void signOut();
+                      }}
+                    >
+                      abmelden
+                    </button>
+                  </div>
+                </>
               )}
-              <button type="button" className="chat-out" onClick={resetChat}>
-                {confirmReset ? "sicher?" : "neu anfangen"}
-              </button>
-              <button type="button" className="chat-out" onClick={signOut}>
-                abmelden
-              </button>
             </>
           ) : (
             <button type="button" className="chat-out" onClick={signIn} disabled={signingIn}>
