@@ -23,6 +23,11 @@ for (const [k, v] of Object.entries({ DATABASE_URL: DB, FAL_KEY, LEA_SERVICE_SEC
 }
 const sql = neon(DB);
 
+// Never let a stray rejection take the whole worker down — it must stay up and
+// keep draining the queue.
+process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e?.message || e));
+process.on("uncaughtException", (e) => console.error("uncaughtException:", e?.message || e));
+
 // Per-fan photo guard. Duplicate/stale webhook endpoints can enqueue the same
 // photo twice, but every path drains THIS one worker — so we dedupe here, the
 // shared chokepoint. A fan gets at most one photo per PHOTO_WINDOW_S seconds.
@@ -46,7 +51,7 @@ async function reservePhoto(fanUuid) {
     where not exists (
       select 1 from fanvue_photo_log
       where fan_uuid = ${fanUuid}
-        and sent_at > now() - (${PHOTO_WINDOW_S} || ' seconds')::interval
+        and sent_at > now() - make_interval(secs => ${PHOTO_WINDOW_S})
     )
     returning fan_uuid`;
   return rows.length > 0;
@@ -149,7 +154,11 @@ async function tick() {
   }
 }
 
-await ensureSchema();
+try {
+  await ensureSchema();
+} catch (e) {
+  console.error("ensureSchema failed (continuing):", e.message);
+}
 console.log(`lea photo worker up, polling jobs every ${POLL_MS}ms (photo window ${PHOTO_WINDOW_S}s)`);
 setInterval(() => {
   tick().catch((e) => console.error("tick error:", e.message));
