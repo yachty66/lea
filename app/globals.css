@@ -626,8 +626,25 @@ img {
 }
 
 .chat-bottom {
-  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  padding: 10px 16px 12px;
   border-top: 1px solid var(--line);
+}
+
+.chat-legal {
+  padding: 0 16px calc(8px + env(safe-area-inset-bottom));
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--mute);
+}
+
+.side-legal {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
 }
 
 @media (min-width: 1024px) {

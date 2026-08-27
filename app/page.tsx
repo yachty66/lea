@@ -13,19 +13,28 @@ type User = {
   image?: string | null;
 };
 
-type Bubble = {
+type Msg = {
   id: number;
-  who: "in" | "out" | "in typing";
+  who: "in" | "out";
   text: string;
+  photo?: string;
+  desc?: string;
 };
 
 const OPENER = card.data.first_mes;
 
-const TEASER_LIMIT = 3;
-
 const DISCORD_INVITE = "https://discord.gg/Yqe8F4yGs";
 
-const FALLBACK = "netz ist gerade weg. schick das nochmal? 😅";
+const FALLBACKS = [
+  "netz ist gerade weg. schick das nochmal?",
+];
+
+const PHOTOS = [
+  { src: "/images/alex.jpg", alt: "Lea am Alexanderplatz" },
+  { src: "/images/street.jpg", alt: "Lea in Friedrichshain" },
+  { src: "/images/fit.jpg", alt: "Lea im Ausgeh-Outfit" },
+  { src: "/images/bar.jpg", alt: "Lea an der Bar" },
+];
 
 function sessionUser(data: unknown): User | null {
   const anyData = data as { user?: User; session?: { user?: User } } | null;
@@ -34,46 +43,141 @@ function sessionUser(data: unknown): User | null {
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [signingIn, setSigningIn] = useState(false);
-  const [bubbles, setBubbles] = useState<Bubble[]>([
-    { id: 0, who: "in", text: OPENER },
-  ]);
+  const [ready, setReady] = useState(false);
+  const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
-  const [sent, setSent] = useState(0);
-  const [locked, setLocked] = useState(false);
-  const [wall, setWall] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [photoPending, setPhotoPending] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [photo, setPhoto] = useState(0);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [gallery, setGallery] = useState<string[]>([]);
+  const [showGallery, setShowGallery] = useState(false);
+  const [wall, setWall] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+  const galleryKey = useRef<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const nextId = useRef(1);
+  const lastReply = useRef(-1);
+  const resetTimer = useRef<number | null>(null);
 
   useEffect(() => {
+    if (
+      process.env.NODE_ENV === "development" &&
+      new URLSearchParams(window.location.search).has("preview")
+    ) {
+      setUser({ id: "preview" });
+      galleryKey.current = "lea-gallery-preview";
+      setMsgs([{ id: 0, who: "in", text: OPENER }]);
+      setReady(true);
+      return;
+    }
     authClient
       .getSession()
-      .then(({ data }) => setUser(sessionUser(data)))
-      .catch((error) => console.error("session error:", error))
-      .finally(() => setAuthReady(true));
+      .then(({ data }) => {
+        const u = sessionUser(data);
+        if (!u) {
+          setMsgs([{ id: 0, who: "in", text: OPENER }]);
+          setReady(true);
+          return;
+        }
+        setUser(u);
+        posthog.identify(u.id, { email: u.email, name: u.name });
+        galleryKey.current = `lea-gallery-${u.id}`;
+
+        const saved = window.localStorage.getItem(`lea-chat-${u.id}`);
+        let initial: Msg[];
+        if (saved) {
+          initial = JSON.parse(saved) as Msg[];
+          nextId.current = initial.reduce((max, m) => Math.max(max, m.id), 0) + 1;
+        } else {
+          initial = [{ id: 0, who: "in", text: OPENER }];
+        }
+        setMsgs(initial);
+        setReady(true);
+
+        // Build the collection as a UNION of every source we have, deduped:
+        // 1) local gallery cache  2) photos still in the chat history  3) Neon.
+        const merge = (...lists: string[][]) => {
+          const seen = new Set<string>();
+          const out: string[] = [];
+          for (const list of lists) {
+            for (const url of list) {
+              if (url && !seen.has(url)) {
+                seen.add(url);
+                out.push(url);
+              }
+            }
+          }
+          return out;
+        };
+        let cached: string[] = [];
+        try {
+          cached = JSON.parse(window.localStorage.getItem(galleryKey.current) || "[]") as string[];
+        } catch {
+          /* ignore */
+        }
+        const fromChat = initial.filter((m) => m.who === "in" && m.photo).map((m) => m.photo!);
+        const localMerged = merge(cached, fromChat);
+        setGallery(localMerged);
+        window.localStorage.setItem(galleryKey.current, JSON.stringify(localMerged));
+
+        fetch("/api/gallery")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (Array.isArray(data?.photos)) {
+              // Neon first (newest, durable), then anything local Neon doesn't have yet.
+              const full = merge(data.photos as string[], localMerged);
+              setGallery(full);
+              window.localStorage.setItem(galleryKey.current!, JSON.stringify(full));
+            }
+          })
+          .catch(() => {
+            /* keep local merge */
+          });
+
+        const pending = window.localStorage.getItem("lea-pending");
+        if (pending) {
+          window.localStorage.removeItem("lea-pending");
+          void send(pending, initial);
+        }
+      })
+      .catch(() => {
+        setMsgs([{ id: 0, who: "in", text: OPENER }]);
+        setReady(true);
+      });
   }, []);
 
   useEffect(() => {
-    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [bubbles]);
+    if (!lightbox) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   useEffect(() => {
-    if (locked) posthog.capture("paywall_shown");
-  }, [locked]);
+    if (user && user.id !== "preview" && msgs.length) {
+      window.localStorage.setItem(`lea-chat-${user.id}`, JSON.stringify(msgs));
+    }
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [msgs, typing, photoPending, user]);
+
+  useEffect(() => {
+    if (wall) posthog.capture("auth_wall_shown");
+  }, [wall]);
 
   const signIn = async () => {
     const pending = draft.trim();
     if (pending) window.localStorage.setItem("lea-pending", pending);
-    posthog.capture("signin_clicked", { from_wall: wall, from_paywall: locked });
+    posthog.capture("signin_clicked", { from_wall: wall });
     setSigningIn(true);
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/chat",
-        newUserCallbackURL: "/chat",
+        callbackURL: "/",
+        newUserCallbackURL: "/",
         errorCallbackURL: "/",
       });
     } catch (error) {
@@ -82,234 +186,367 @@ export default function Home() {
     }
   };
 
-  const signOut = async () => {
-    await authClient.signOut();
-    setUser(null);
+  const resetChat = () => {
+    if (!confirmReset) {
+      setConfirmReset(true);
+      resetTimer.current = window.setTimeout(() => setConfirmReset(false), 3000);
+      return;
+    }
+    if (resetTimer.current) window.clearTimeout(resetTimer.current);
+    setConfirmReset(false);
+    if (user && user.id !== "preview") {
+      window.localStorage.removeItem(`lea-chat-${user.id}`);
+    }
+    nextId.current = 1;
+    setTyping(false);
+    setMsgs([{ id: 0, who: "in", text: OPENER }]);
+    posthog.capture("chat_reset");
   };
 
-  const addBubble = (who: Bubble["who"], text: string) => {
-    const id = nextId.current++;
-    setBubbles((current) => [...current, { id, who, text }]);
-    return id;
+  const collectPhoto = (url: string) => {
+    setGallery((current) => {
+      if (current.includes(url)) return current;
+      const next = [url, ...current];
+      if (galleryKey.current) {
+        window.localStorage.setItem(galleryKey.current, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const signOut = async () => {
+    await authClient.signOut();
+    window.location.reload();
   };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
-    if (!text || locked || typing) return;
+    if (!text || typing) return;
     if (!user) {
       window.localStorage.setItem("lea-pending", text);
       setWall(true);
-      posthog.capture("auth_wall_shown");
       return;
     }
-    if (!user && sent >= TEASER_LIMIT) {
-      setLocked(true);
-      return;
-    }
-
-    const history = [...bubbles, { id: nextId.current++, who: "out" as const, text }];
-    setBubbles(history);
     setDraft("");
-    const nextSent = sent + 1;
-    setSent(nextSent);
-    setTyping(true);
-    const typingId = addBubble("in typing", "•••");
+    await send(text);
+  };
 
-    let reply = FALLBACK;
+  const downscale = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 768;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(img.src);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+
+  const onPickPhoto = async (file: File) => {
+    if (typing || photoPending) return;
+    if (!user) {
+      setWall(true);
+      return;
+    }
+    let dataUri: string;
+    try {
+      dataUri = await downscale(file);
+    } catch (error) {
+      console.error("image read error:", error);
+      return;
+    }
+    const photoMsg: Msg = { id: nextId.current++, who: "out", text: "", photo: dataUri };
+    const history = [...msgs, photoMsg];
+    setMsgs(history);
+    setTyping(true);
+    posthog.capture("user_photo_sent");
+    try {
+      const response = await fetch("/api/vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataUri }),
+      });
+      const data = await response.json();
+      if (typeof data.description === "string") photoMsg.desc = data.description;
+    } catch (error) {
+      console.error("vision error:", error);
+    }
+    await converse(history);
+  };
+
+  const send = async (text: string, base?: Msg[]) => {
+    const history = [...(base ?? msgs), { id: nextId.current++, who: "out" as const, text }];
+    posthog.capture("message_sent", { length: text.length, history_length: history.length });
+    await converse(history);
+  };
+
+  const asContent = (msg: Msg): string => {
+    if (!msg.photo) return msg.text;
+    if (msg.who === "out") {
+      return `${msg.text}\n[er schickt dir ein foto. darauf zu sehen: ${msg.desc || "keine beschreibung verfügbar"}]`.trim();
+    }
+    return `${msg.text}\n[foto geschickt]`.trim();
+  };
+
+  const converse = async (history: Msg[]) => {
+    setMsgs(history);
+    setTyping(true);
+
+    let reply = "";
+    let photoPrompt: string | undefined;
+    let failed = false;
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: history.map((bubble) => ({
-            role: bubble.who === "out" ? "user" : "assistant",
-            content: bubble.text,
+          messages: history.map((msg) => ({
+            role: msg.who === "out" ? "user" : "assistant",
+            content: asContent(msg),
           })),
         }),
       });
       if (!response.ok) throw new Error(`chat api ${response.status}`);
       const data = await response.json();
-      if (typeof data.text === "string" && data.text.trim()) reply = data.text;
+      reply = typeof data.text === "string" ? data.text : data.reply;
+      photoPrompt = typeof data.photoPrompt === "string" ? data.photoPrompt : undefined;
     } catch (error) {
       console.error("chat error:", error);
+      failed = true;
+      let pick = Math.floor(Math.random() * FALLBACKS.length);
+      if (pick === lastReply.current) pick = (pick + 1) % FALLBACKS.length;
+      lastReply.current = pick;
+      reply = FALLBACKS[pick];
     }
 
+    posthog.capture("reply_received", { with_photo: photoPrompt !== undefined, fallback: failed });
+
     setTyping(false);
-    setBubbles((current) =>
-      current
-        .filter((bubble) => bubble.id !== typingId)
-        .concat({ id: nextId.current++, who: "in", text: reply })
-    );
-    playPing();
-    if (!user && nextSent >= TEASER_LIMIT) {
-      window.setTimeout(() => setLocked(true), 700);
+    if (reply) {
+      setMsgs((current) => [...current, { id: nextId.current++, who: "in", text: reply }]);
+      playPing();
+    }
+
+    if (photoPrompt !== undefined) {
+      setPhotoPending(true);
+      try {
+        const response = await fetch("/api/photo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: photoPrompt }),
+        });
+        if (!response.ok) throw new Error(`photo api ${response.status}`);
+        const data = await response.json();
+        if (typeof data.photo === "string") {
+          setMsgs((current) => [
+            ...current,
+            { id: nextId.current++, who: "in", text: "", photo: data.photo },
+          ]);
+          collectPhoto(data.photo);
+          playPing();
+        }
+      } catch (error) {
+        console.error("photo error:", error);
+      } finally {
+        setPhotoPending(false);
+      }
     }
   };
 
-  return (
-    <>
-      <main>
-        <section className="hero">
-          <img src="/images/hero.jpg" alt="Lea in Berlin" className="hero-photo" />
-          <div className="hero-shade" />
+  if (!ready) {
+    return (
+      <div className="chat-shell">
+        <p className="chat-loading">lea kommt gleich…</p>
+      </div>
+    );
+  }
 
-          <div className="top-chips">
-            {DISCORD_INVITE && (
-              <a
-                className="discord-chip"
-                href={DISCORD_INVITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Discord beitreten"
-              >
-                <DiscordMark />
-              </a>
-            )}
-            {authReady &&
-            (user ? (
-              <div className="auth-chip">
-                {user.image ? (
-                  <img src={user.image} alt="" />
-                ) : (
-                  <span className="auth-fallback">
-                    {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-                <span>{user.name?.split(" ")[0] || user.email}</span>
-                <button type="button" onClick={signOut}>
-                  abmelden
+  return (
+    <div className="chat-shell">
+      <div className="chat-page">
+        <header className="chat-top">
+          <img src="/images/street.jpg" alt="Lea" className="chat-avatar" />
+          <div className="chat-who">
+            <p className="chat-name">Lea</p>
+            <p className="chat-status">online</p>
+          </div>
+          <a
+            className="discord-chip"
+            href={DISCORD_INVITE}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Discord beitreten"
+          >
+            <DiscordMark />
+          </a>
+          {user ? (
+            <>
+              {gallery.length > 0 && (
+                <button type="button" className="chat-out" onClick={() => setShowGallery(true)}>
+                  sammlung ({gallery.length})
                 </button>
-              </div>
-            ) : (
-              <button type="button" className="auth-chip auth-chip-login" onClick={signIn} disabled={signingIn}>
-                {signingIn ? "google…" : "mit google"}
+              )}
+              <button type="button" className="chat-out" onClick={resetChat}>
+                {confirmReset ? "sicher?" : "neu anfangen"}
               </button>
+              <button type="button" className="chat-out" onClick={signOut}>
+                abmelden
+              </button>
+            </>
+          ) : (
+            <button type="button" className="chat-out" onClick={signIn} disabled={signingIn}>
+              {signingIn ? "google…" : "mit google"}
+            </button>
+          )}
+        </header>
+
+        <div className="chat-main" ref={logRef}>
+          {msgs.map((msg) => (
+            <div key={msg.id} className={`bubble ${msg.who}`}>
+              {msg.photo && (
+                <img
+                  src={msg.photo}
+                  alt=""
+                  className="bubble-photo"
+                  onClick={() => setLightbox(msg.photo!)}
+                />
+              )}
+              {msg.text}
+            </div>
+          ))}
+          {typing && (
+            <div className="bubble in typing">
+              <TypingDots />
+            </div>
+          )}
+          {photoPending && (
+            <div className="bubble in typing photo-pending">
+              <span className="photo-pending-label">📷 macht ein foto</span>
+              <TypingDots />
+            </div>
+          )}
+        </div>
+
+        <form className="chat-compose chat-bottom" onSubmit={onSubmit}>
+          <label className="attach-btn" aria-label="Foto senden">
+            +
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) onPickPhoto(file);
+              }}
+            />
+          </label>
+          <input
+            type="text"
+            autoComplete="off"
+            placeholder="Nachricht schreiben…"
+            maxLength={500}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <button type="submit" aria-label="Senden">
+            ↑
+          </button>
+        </form>
+        <p className="chat-legal">lea · berlin · 18+ · ki-charakter</p>
+      </div>
+
+      <aside className="chat-side">
+        <div className="side-slider">
+          <img
+            src={PHOTOS[photo].src}
+            alt={PHOTOS[photo].alt}
+            onClick={() => setLightbox(PHOTOS[photo].src)}
+            style={{ cursor: "zoom-in" }}
+          />
+          <button
+            type="button"
+            className="side-nav side-prev"
+            aria-label="Vorheriges Foto"
+            onClick={() => setPhoto((photo + PHOTOS.length - 1) % PHOTOS.length)}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="side-nav side-next"
+            aria-label="Nächstes Foto"
+            onClick={() => setPhoto((photo + 1) % PHOTOS.length)}
+          >
+            ›
+          </button>
+          <div className="side-dots">
+            {PHOTOS.map((p, i) => (
+              <button
+                type="button"
+                key={p.src}
+                className={i === photo ? "on" : ""}
+                aria-label={`Foto ${i + 1}`}
+                onClick={() => setPhoto(i)}
+              />
             ))}
           </div>
-
-          <div className="hero-inner">
-            <div className="hero-id">
-              <p className="hero-meta">23 · Berlin</p>
-              <h1>Lea</h1>
-              <p className="hero-lines">
-                schreibt zu viel.
-                <br />
-                kocht zu viel pasta.
-                <br />
-                sitzt zu oft alleine an der bar.
-                <br />
-                bleibt im club immer bis 9.
-              </p>
-            </div>
-
-            <div className={`hero-chat${locked && !user ? " locked" : ""}`}>
-              {user ? (
-                <a className="btn btn-light" href="/chat">
-                  weiter mit lea schreiben
-                </a>
-              ) : (
-                <>
-              <div className="chat-log" ref={logRef}>
-                {bubbles.map((bubble) => (
-                  <div key={bubble.id} className={`bubble ${bubble.who}`}>
-                    {bubble.who === "in typing" ? <TypingDots /> : bubble.text}
-                  </div>
-                ))}
-              </div>
-
-              <form className="chat-compose" onSubmit={onSubmit}>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  autoComplete="off"
-                  placeholder="Nachricht schreiben…"
-                  maxLength={240}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  disabled={locked && !user}
-                />
-                <button type="submit" aria-label="Senden">
-                  ↑
-                </button>
-              </form>
-
-              {locked && (
-                <div className="paywall">
-                  <p>lea wartet noch.</p>
-                  <p className="paywall-sub">weiter schreiben: mit google, dann kennt sie dich.</p>
-                  <button type="button" className="btn btn-light" onClick={signIn} disabled={signingIn}>
-                    <GoogleMark />
-                    {signingIn ? "redirecting…" : "mit google weiter"}
-                  </button>
-                </div>
-              )}
-                </>
-              )}
-            </div>
-
-            <p className="hero-age">18+</p>
-          </div>
-        </section>
-
-        <section className="week" aria-labelledby="week-title">
-          <div className="section-head">
-            <p className="eyebrow">letzte woche</p>
-            <h2 id="week-title">so sah’s aus.</h2>
-          </div>
-          <div className="film">
-            <figure>
-              <img src="/images/street.jpg" alt="Lea in Friedrichshain" />
-              <figcaption>
-                <span>mittwoch</span>
-                kurz vor die tür. friedrichshain halt.
-              </figcaption>
-            </figure>
-            <figure>
-              <img
-                src="/images/fit.jpg"
-                alt="Lea im Ausgeh-Outfit"
-                style={{ objectPosition: "50% 8%" }}
-              />
-              <figcaption>
-                <span>samstag</span>
-                outfit check, bevor&rsquo;s losgeht.
-              </figcaption>
-            </figure>
-            <figure>
-              <img src="/images/bar.jpg" alt="Lea an der Bar" />
-              <figcaption>
-                <span>freitag, 1 uhr</span>
-                tue so als würde ich auf jemanden warten.
-              </figcaption>
-            </figure>
-            <figure>
-              <img src="/images/alex.jpg" alt="Lea am Alexanderplatz" />
-              <figcaption>
-                <span>heute</span>
-                einmal touri sein am alex.
-              </figcaption>
-            </figure>
-          </div>
-        </section>
-
-        <section className="bio">
-          <p>
-            ich bin lea. wohn in einer 2er-wg in friedrichshain, arbeite im café und tu so als würde ich noch
+        </div>
+        <div className="side-info">
+          <p className="side-meta">23 · Berlin</p>
+          <h2>Lea</h2>
+          <p className="side-bio">
+            schreibt zu viel. kocht zu viel pasta. sitzt zu oft alleine an der bar. bleibt im club
+            immer bis 9. wohnt in einer 2er-wg in friedrichshain und tut so als würde sie noch
             studieren.
           </p>
-          <p>
-            meistens koche ich zu viel. manchmal sitze ich an der bar und warte auf niemanden bestimmtes.
-            und samstags steh ich in irgendeinem dunklen laden und tanz, bis die sonne wieder da ist.
-            techno halt.
-          </p>
-          <p>schreib mir. ich antworte, versprochen.</p>
-        </section>
-      </main>
+          <p className="side-legal">lea · berlin · 18+ · ki-charakter</p>
+        </div>
+      </aside>
 
-      <footer>
-        <p>lea · berlin · 18+ · ki-charakter</p>
-      </footer>
+      {showGallery && (
+        <div className="gallery-overlay" onClick={() => setShowGallery(false)}>
+          <div className="gallery-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="gallery-head">
+              <h3>deine sammlung</h3>
+              <button
+                type="button"
+                className="gallery-close"
+                aria-label="Schließen"
+                onClick={() => setShowGallery(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="gallery-grid">
+              {gallery.map((url) => (
+                <img key={url} src={url} alt="" onClick={() => setLightbox(url)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <button
+            type="button"
+            className="lightbox-close"
+            aria-label="Schließen"
+            onClick={() => setLightbox(null)}
+          >
+            ×
+          </button>
+          <img src={lightbox} alt="" onClick={(event) => event.stopPropagation()} />
+        </div>
+      )}
 
       {wall && !user && (
         <div className="authwall-backdrop" onClick={() => setWall(false)}>
@@ -340,7 +577,7 @@ export default function Home() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
