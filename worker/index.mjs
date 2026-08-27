@@ -23,6 +23,35 @@ for (const [k, v] of Object.entries({ DATABASE_URL: DB, FAL_KEY, LEA_SERVICE_SEC
 }
 const sql = neon(DB);
 
+// Per-fan photo guard. Duplicate/stale webhook endpoints can enqueue the same
+// photo twice, but every path drains THIS one worker — so we dedupe here, the
+// shared chokepoint. A fan gets at most one photo per PHOTO_WINDOW_S seconds.
+const PHOTO_WINDOW_S = Number(process.env.PHOTO_WINDOW_S || 60);
+
+async function ensureSchema() {
+  await sql`create table if not exists fanvue_photo_log (
+    fan_uuid text not null,
+    sent_at timestamptz not null default now()
+  )`;
+  await sql`create index if not exists fanvue_photo_log_fan_ts
+    on fanvue_photo_log (fan_uuid, sent_at desc)`;
+}
+
+// Atomically reserve a photo slot for this fan. Returns true only if no photo
+// was reserved for the fan within the window — the reservation row is the lock.
+async function reservePhoto(fanUuid) {
+  const rows = await sql`
+    insert into fanvue_photo_log (fan_uuid)
+    select ${fanUuid}
+    where not exists (
+      select 1 from fanvue_photo_log
+      where fan_uuid = ${fanUuid}
+        and sent_at > now() - (${PHOTO_WINDOW_S} || ' seconds')::interval
+    )
+    returning fan_uuid`;
+  return rows.length > 0;
+}
+
 async function generate(prompt) {
   const full =
     `Image 1 is the character reference sheet of a woman. Create a photorealistic photo of the exact same woman. ` +
@@ -104,6 +133,11 @@ async function tick() {
     returning fan_uuid, prompt`;
   if (!rows.length) return;
   const { fan_uuid, prompt } = rows[0];
+  // Drop the job if this fan already got (or is getting) a photo in the window.
+  if (!(await reservePhoto(fan_uuid))) {
+    console.log(`skip duplicate photo for ${fan_uuid.slice(0, 8)}`);
+    return;
+  }
   try {
     const imageUrl = await generate(prompt);
     const token = await fanvueToken();
@@ -115,7 +149,8 @@ async function tick() {
   }
 }
 
-console.log(`lea photo worker up, polling jobs every ${POLL_MS}ms`);
+await ensureSchema();
+console.log(`lea photo worker up, polling jobs every ${POLL_MS}ms (photo window ${PHOTO_WINDOW_S}s)`);
 setInterval(() => {
   tick().catch((e) => console.error("tick error:", e.message));
 }, POLL_MS);
