@@ -3,7 +3,7 @@ import { getSessionUser } from "@/lib/auth/server";
 import { saveMessages } from "@/lib/db";
 import { generatePhoto, fallbackPhoto } from "@/lib/photo";
 
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   const isService =
@@ -17,7 +17,9 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const description =
-    typeof body?.description === "string" ? body.description.slice(0, 300).trim() : "";
+    typeof body?.description === "string" ? body.description.slice(0, 600).trim() : "";
+  // Fanvue worker/service may request spicy; web browser sessions stay SFW.
+  const allowSpicy = isService === true;
 
   const requestOrigin = new URL(request.url).origin;
   const origin = requestOrigin.includes("localhost") ? "https://leaberlin.com" : requestOrigin;
@@ -30,7 +32,8 @@ export async function POST(request: Request) {
   try {
     const photo = await generatePhoto(
       description || "casual selfie in her apartment, soft light",
-      origin
+      origin,
+      { allowSpicy }
     );
     persist(photo);
     return Response.json({ photo });

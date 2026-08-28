@@ -58,19 +58,23 @@ async function reservePhoto(fanUuid) {
 }
 
 async function generate(prompt) {
+  // Same prompt shape as the manual Hunyuan chat tests that looked good:
+  // identity lock first, then the full scene (spicy allowed on Fanvue).
+  const scene = (prompt || "casual selfie, soft light").trim();
   const full =
-    `Image 1 is the character reference sheet of a woman. Create a photorealistic photo of the exact same woman. ` +
-    `Preserve her exact face, freckles, green-hazel eyes, blonde messy hair, gold hoop earrings, thin gold necklace and body proportions from Image 1. ` +
-    `Scene: ${prompt}. She stays fully clothed, everyday casual content. Shot on a phone, candid amateur photo aesthetic, realistic skin texture, photorealistic.`;
+    `Image 1 is the character reference sheet. Create a photorealistic photo of the same woman. ` +
+    `Preserve the exact face, freckles, blonde hair, green-hazel eyes and body proportions from Image 1. ` +
+    `${scene}. ` +
+    `Realistic skin texture, natural lighting, photorealistic, highly detailed.`;
   const res = await fetch("https://fal.run/fal-ai/hunyuan-image/v3/instruct/edit", {
     method: "POST",
     headers: { Authorization: `Key ${FAL_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       prompt: full,
       image_urls: [REF],
-      image_size: { width: 768, height: 1024 },
+      image_size: { width: 1536, height: 2048 },
       num_images: 1,
-      output_format: "jpeg",
+      output_format: "png",
       enable_safety_checker: false,
       enable_prompt_expansion: false,
     }),
@@ -95,7 +99,7 @@ async function upload(token, imageUrl) {
   const cr = await fetch(`${FV}/media/uploads`, {
     method: "POST",
     headers: H,
-    body: JSON.stringify({ name: "lea.jpg", filename: "lea.jpg", mediaType: "image", sizeBytes: bytes.length }),
+    body: JSON.stringify({ name: "lea.png", filename: "lea.png", mediaType: "image", sizeBytes: bytes.length }),
   });
   if (!cr.ok) throw new Error(`create ${cr.status}`);
   const { mediaUuid, uploadId, partSize, totalParts } = await cr.json();

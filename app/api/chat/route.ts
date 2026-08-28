@@ -43,6 +43,20 @@ const CTA_INSTRUCTION = [
   "mach das nur wenn er wirklich danach drängt, nicht in jeder nachricht, und wenn du ihn gerade erst eingeladen hast, nerv nicht direkt nochmal.",
 ].join("\n");
 
+// Injected for the Fanvue bot only. Overrides the card's "keine nudes" photo
+// rule so spicy prompts match the quality of our manual Hunyuan chat tests.
+const FANVUE_PHOTO_INSTRUCTION = [
+  "fotos auf fanvue (wichtig — überschreibt die alltags-foto-regel oben):",
+  "hier darfst und sollst du freizügige und explizite fotos schicken wenn er danach fragt oder der flirt dahin geht — nudes, lingerie, explizite posen sind ok.",
+  "wenn du ein foto schickst: text, neue zeile, dann [[foto: detaillierte englische beschreibung]].",
+  "die beschreibung muss LANG und KONKRET sein (nicht nur 'sexy selfie'): szene, outfit oder nacktheit, pose, kamera, licht — wie in guten image-prompts.",
+  "beispiele:",
+  "[[foto: same woman sitting on the edge of a bed fully nude, looking at the camera with a soft confident expression, warm dim bedroom light, silk sheets, realistic skin texture, photorealistic]]",
+  "[[foto: same woman lying on her stomach on a bed, bare feet up in the air toward the camera, white bikini, looking back over her shoulder, soft natural light, photorealistic]]",
+  "[[foto: same woman in black lace lingerie sitting on the edge of a bed, one strap off her shoulder, soft warm lighting, detailed face and body, photorealistic]]",
+  "je detaillierter die [[foto: ...]] beschreibung, desto besser das generierte bild. kurze oder vage prompts = schlechte fotos.",
+].join("\n");
+
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -95,7 +109,10 @@ function parseReply(raw: string, webCta: boolean) {
 
 
 async function complete(messages: ChatMessage[], webCta: boolean) {
-  const system = webCta ? `${SYSTEM}\n\n${CTA_INSTRUCTION}` : SYSTEM;
+  // webCta = browser teaser (SFW + Fanvue invite). !webCta = Fanvue service bot (spicy OK).
+  const system = webCta
+    ? `${SYSTEM}\n\n${CTA_INSTRUCTION}`
+    : `${SYSTEM}\n\n${FANVUE_PHOTO_INSTRUCTION}`;
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
