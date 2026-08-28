@@ -65,6 +65,43 @@ function internal(path: string, origin: string, bodyObj: unknown) {
   });
 }
 
+// Give the fan the read receipt (blue checkmarks). Fire-and-forget.
+function markRead(fanUuid: string): void {
+  fanvueFetch(`/chats/${fanUuid}`, { method: "PATCH", body: JSON.stringify({ isRead: true }) }).catch(
+    () => {}
+  );
+}
+
+// Best-effort realtime "typing…" signal. It's ephemeral and not persisted, so
+// Fanvue expires it after a few seconds — the caller re-pings to keep it alive.
+async function sendTyping(fanUuid: string, isTyping: boolean): Promise<void> {
+  try {
+    await fanvueFetch(`/chats/${fanUuid}/typing`, {
+      method: "POST",
+      body: JSON.stringify({ isTyping }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+// Show "Lea is typing…" and keep it alive until the returned stop() is called
+// (when her reply is sent). Idempotent stop.
+function startTyping(fanUuid: string): () => void {
+  let stopped = false;
+  const ping = () => {
+    if (!stopped) void sendTyping(fanUuid, true);
+  };
+  ping();
+  const timer = setInterval(ping, 3000);
+  return () => {
+    if (stopped) return;
+    stopped = true;
+    clearInterval(timer);
+    void sendTyping(fanUuid, false);
+  };
+}
+
 async function describeInbound(fanUuid: string, messageUuid: string, origin: string): Promise<string> {
   try {
     const res = await fanvueFetch(`/chats/${fanUuid}/messages/${messageUuid}/media`);
@@ -120,56 +157,66 @@ async function reply(
   me: string,
   origin: string
 ): Promise<boolean> {
-  const history: { role: "user" | "assistant"; content: string }[] = [];
-  for (const m of ordered) {
-    const fromFan = m.sender?.uuid !== me;
-    let content = (m.text ?? "").trim();
-    if (m.hasMedia && fromFan) {
-      const desc = (await describeInbound(fanUuid, m.uuid, origin)) || "keine beschreibung verfügbar";
-      content = `${content}\n[er schickt dir ein foto. darauf zu sehen: ${desc}]`.trim();
+  // The moment we start handling her reply: give the fan the read receipt
+  // (blue checkmarks) and show "Lea is typing…" until her message lands.
+  markRead(fanUuid);
+  const stopTyping = startTyping(fanUuid);
+  try {
+    const history: { role: "user" | "assistant"; content: string }[] = [];
+    for (const m of ordered) {
+      const fromFan = m.sender?.uuid !== me;
+      let content = (m.text ?? "").trim();
+      if (m.hasMedia && fromFan) {
+        const desc =
+          (await describeInbound(fanUuid, m.uuid, origin)) || "keine beschreibung verfügbar";
+        content = `${content}\n[er schickt dir ein foto. darauf zu sehen: ${desc}]`.trim();
+      }
+      if (!content) continue;
+      history.push({ role: fromFan ? "user" : "assistant", content });
     }
-    if (!content) continue;
-    history.push({ role: fromFan ? "user" : "assistant", content });
+    if (!history.length || history[history.length - 1].role !== "user") return false;
+
+    const result = await internal("/api/chat", origin, { messages: history }).then((r) =>
+      r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))
+    );
+    const text = (result.text ?? "").trim();
+    const wantsPhoto = typeof result.photoPrompt === "string";
+
+    // Belt-and-suspenders: after the ~7s generation, make sure no other trigger
+    // already answered while we were thinking. If Lea is now the last sender, bail.
+    const latest = await fanvueFetch(`/chats/${fanUuid}/messages?size=1`);
+    if (latest.ok) {
+      const newest = ((await latest.json()).data ?? [])[0] as FanvueMessage | undefined;
+      if (newest && newest.sender?.uuid === me) return false;
+    }
+
+    const send = (body: Record<string, unknown>) =>
+      fanvueFetch(`/chats/${fanUuid}/message`, { method: "POST", body: JSON.stringify(body) });
+
+    let sent = false;
+
+    // 1) Text first — arrives fast, before the slow photo work.
+    if (text) {
+      if ((await send({ text })).ok) sent = true;
+      stopTyping(); // her message is here — drop the typing bubble immediately
+    }
+
+    // 2) Photo: queue it for the always-on worker (generation is ~40s, too slow
+    //    for this serverless function). The worker generates, uploads and sends it
+    //    as a follow-up message. The text reply above already counts as sent.
+    if (wantsPhoto) {
+      await enqueuePhoto(fanUuid, (result.photoPrompt as string) || "casual selfie, soft light");
+      sent = true;
+    }
+
+    // 3) Never ghost the fan — but only if we truly sent nothing.
+    if (!sent) {
+      if ((await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" })).ok) sent = true;
+    }
+    return sent;
+  } finally {
+    stopTyping();
   }
-  if (!history.length || history[history.length - 1].role !== "user") return false;
-
-  const result = await internal("/api/chat", origin, { messages: history }).then((r) =>
-    r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))
-  );
-  const text = (result.text ?? "").trim();
-  const wantsPhoto = typeof result.photoPrompt === "string";
-
-  // Belt-and-suspenders: after the ~7s generation, make sure no other trigger
-  // already answered while we were thinking. If Lea is now the last sender, bail.
-  const latest = await fanvueFetch(`/chats/${fanUuid}/messages?size=1`);
-  if (latest.ok) {
-    const newest = ((await latest.json()).data ?? [])[0] as FanvueMessage | undefined;
-    if (newest && newest.sender?.uuid === me) return false;
-  }
-
-  const send = (body: Record<string, unknown>) =>
-    fanvueFetch(`/chats/${fanUuid}/message`, { method: "POST", body: JSON.stringify(body) });
-
-  let sent = false;
-
-  // 1) Text first — arrives fast, before the slow photo work.
-  if (text) {
-    if ((await send({ text })).ok) sent = true;
-  }
-
-  // 2) Photo: queue it for the always-on worker (generation is ~40s, too slow
-  //    for this serverless function). The worker generates, uploads and sends it
-  //    as a follow-up message. The text reply above already counts as sent.
-  if (wantsPhoto) {
-    await enqueuePhoto(fanUuid, (result.photoPrompt as string) || "casual selfie, soft light");
-    sent = true;
-  }
-
-  // 3) Never ghost the fan — but only if we truly sent nothing.
-  if (!sent) {
-    if ((await send({ text: "sek, handy hängt grad 🙈 was wolltest du sehen?" })).ok) sent = true;
-  }
-  return sent;
 }
 
 // Answer any chat whose latest message is from the fan. We can't rely on the
