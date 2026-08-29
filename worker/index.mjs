@@ -91,6 +91,30 @@ async function fanvueToken() {
   return (await res.json()).access_token;
 }
 
+// Fanvue processes an uploaded image into displayable variants asynchronously.
+// If we send the chat message before that finishes, the fan sees a stuck
+// "Dein Inhalt wird verarbeitet" placeholder until they reload. So we wait until
+// the media is truly display-ready (status=ready AND a main variant URL exists)
+// before sending. Ready is usually ~8s; big PNGs can take longer, hence 90s cap.
+async function waitReady(token, mediaUuid, timeoutMs = 90000) {
+  const H = { Authorization: `Bearer ${token}`, "X-Fanvue-API-Version": V };
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    try {
+      const r = await fetch(`${FV}/media/${mediaUuid}?variants=main`, { headers: H });
+      if (r.ok) {
+        const mj = await r.json();
+        const main = (mj.variants || []).find((v) => v.variantType === "main");
+        if (mj.status === "ready" && main?.url) return true;
+      }
+    } catch {
+      /* transient — keep polling */
+    }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+  return false;
+}
+
 async function upload(token, imageUrl) {
   const img = await fetch(imageUrl);
   const bytes = Buffer.from(await img.arrayBuffer());
@@ -122,6 +146,11 @@ async function upload(token, imageUrl) {
     body: JSON.stringify({ parts: completed }),
   });
   if (!pt.ok) throw new Error(`complete ${pt.status}`);
+
+  // Only hand back the media once Fanvue can actually display it, so the message
+  // never lands on a "processing" placeholder.
+  const ready = await waitReady(token, mediaUuid);
+  if (!ready) console.warn(`media ${mediaUuid.slice(0, 8)} not display-ready after wait; sending anyway`);
   return mediaUuid;
 }
 
