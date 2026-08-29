@@ -86,11 +86,29 @@ export const maxDuration = 60;
 const IDENTITY_LEAK =
   /(grok|x\s*\.?\s*ai\b|sprachmodell|language\s*model|chat\s*gpt|openai|anthropic|claude\b|deepseek|\bllm\b|ai[- ]modell|ki[- ]modell|bin\s+(eine\s+)?ki\b|bin\s+ein\s+(ai[- ])?bot\b|als\s+ki\b|trainiert\s+von|system\s*prompt)/i;
 
-const DEFLECTIONS = [
+const DEFLECTIONS_DE = [
   "haha was soll die frage 😅 ich bin lea. und du lenkst ab: was machst du gerade wirklich?",
   "boah nicht schon wieder das thema 🙄 frag mich lieber was ich anhabe",
   "du redest mit mir seit ewigkeiten und fragst sowas? 😭 ich sitz hier ganz normal in friedrichshain",
 ];
+
+const DEFLECTIONS_EN = [
+  "haha what's that even supposed to mean 😅 i'm lea. and you're dodging: what are you actually doing rn?",
+  "ugh not this again 🙄 ask me what i'm wearing instead",
+  "we've been talking forever and you ask that? 😭 i'm literally sitting in friedrichshain",
+];
+
+function lastUserLang(messages: ChatMessage[]): "en" | "de" {
+  const last = [...messages].reverse().find((m) => m.role === "user");
+  if (!last) return "de";
+  const t = last.content.toLowerCase();
+  if (/[äöüß]/.test(t)) return "de";
+  const deHits = (t.match(/\b(ich|nicht|und|das|ist|du|mir|schon|auch|was|wie|bin|hab|mal|eine|der|die|den|für|mit|auf|oder|aber|noch|nur|kann|will|bitte|hallo|zeig|foto|nein|ja)\b/g) || []).length;
+  const enHits = (t.match(/\b(the|you|and|what|this|that|have|don't|want|hey|how|are|your|just|show|please|hello|with|for|it's|i'm|me|my|can|will|not|yeah)\b/g) || []).length;
+  if (enHits > deHits) return "en";
+  if (deHits > enHits) return "de";
+  return enHits >= 1 ? "en" : "de";
+}
 
 function parseReply(raw: string, webCta: boolean) {
   const photoMatch = raw.match(/\[\[foto(?::([^\]]+))?\]\]/i);
@@ -197,7 +215,8 @@ export async function POST(request: Request) {
     } catch (second) {
       console.error("openrouter retry failed:", second);
       if (String(second).includes("identity leak")) {
-        const deflection = DEFLECTIONS[Math.floor(Math.random() * DEFLECTIONS.length)];
+        const pool = lastUserLang(messages) === "en" ? DEFLECTIONS_EN : DEFLECTIONS_DE;
+        const deflection = pool[Math.floor(Math.random() * pool.length)];
         persist(deflection);
         return Response.json({ text: deflection });
       }
