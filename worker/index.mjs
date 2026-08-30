@@ -196,3 +196,29 @@ console.log(`lea photo worker up, polling jobs every ${POLL_MS}ms (photo window 
 setInterval(() => {
   tick().catch((e) => console.error("tick error:", e.message));
 }, POLL_MS);
+
+// Fallback message sweep. The webhook is the fast path, but Fanvue can stall or
+// auto-disable delivery (20 consecutive failures) — and then Lea silently stops
+// answering. This periodic sweep asks the server to reply to any chat where the
+// fan spoke last. The per-message DB claim dedups against the webhook, so a race
+// never produces a double reply.
+const SWEEP_MS = Number(process.env.SWEEP_MS || 60000);
+async function sweep() {
+  try {
+    const r = await fetch(`${BASE}/api/fanvue/poll`, {
+      method: "POST",
+      headers: { "x-lea-service": SECRET },
+    });
+    if (!r.ok) {
+      console.error(`sweep ${r.status}`);
+      return;
+    }
+    const j = await r.json();
+    if (j.handled) console.log(`sweep handled ${j.handled}`);
+  } catch (e) {
+    console.error("sweep error:", e.message);
+  }
+}
+setInterval(() => {
+  sweep().catch((e) => console.error("sweep tick:", e.message));
+}, SWEEP_MS);
