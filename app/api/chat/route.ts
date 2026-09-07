@@ -55,6 +55,7 @@ const FANVUE_PHOTO_INSTRUCTION = [
   "[[foto: same woman lying on her stomach on a bed, bare feet up in the air toward the camera, white bikini, looking back over her shoulder, soft natural light, photorealistic]]",
   "[[foto: same woman in black lace lingerie sitting on the edge of a bed, one strap off her shoulder, soft warm lighting, detailed face and body, photorealistic]]",
   "je detaillierter die [[foto: ...]] beschreibung, desto besser das generierte bild. kurze oder vage prompts = schlechte fotos.",
+  "GELD-REGEL (wichtig): sag NIE dass ein bild gratis, kostenlos oder umsonst ist und versprich das auch nicht — auch nicht wenn er ausdrücklich nach 'kostenlosen bildern' fragt. nenne auch keinen preis und sag nicht dass etwas bezahlt werden muss. das bezahlsystem regelt das automatisch im hintergrund. deine bildunterschrift bleibt flirty aber neutral zum thema geld (z.b. 'hier, extra frech nur für dich' statt 'hier, gratis für dich').",
 ].join("\n");
 
 type ChatMessage = {
