@@ -33,6 +33,12 @@ process.on("uncaughtException", (e) => console.error("uncaughtException:", e?.me
 // shared chokepoint. A fan gets at most one photo per PHOTO_WINDOW_S seconds.
 const PHOTO_WINDOW_S = Number(process.env.PHOTO_WINDOW_S || 60);
 
+// Monetization: each fan gets FREE_QUOTA images per calendar month; every image
+// after that is sent pay-to-view at PHOTO_PRICE_CENTS (Fanvue minimum is 300 =
+// $3.00). The fanvue_photo_log rows double as the monthly usage counter.
+const FREE_QUOTA = Number(process.env.PHOTO_FREE_QUOTA || 10);
+const PHOTO_PRICE_CENTS = Math.max(300, Number(process.env.PHOTO_PRICE_CENTS || 300));
+
 async function ensureSchema() {
   await sql`create table if not exists fanvue_photo_log (
     fan_uuid text not null,
@@ -55,6 +61,16 @@ async function reservePhoto(fanUuid) {
     )
     returning fan_uuid`;
   return rows.length > 0;
+}
+
+// How many photos this fan has received in the current calendar month (the
+// reservePhoto row for the image in flight is already counted).
+async function monthCount(fanUuid) {
+  const rows = await sql`
+    select count(*)::int as c from fanvue_photo_log
+    where fan_uuid = ${fanUuid}
+      and date_trunc('month', sent_at) = date_trunc('month', now())`;
+  return rows[0]?.c ?? 0;
 }
 
 async function generate(prompt) {
@@ -154,11 +170,14 @@ async function upload(token, imageUrl) {
   return mediaUuid;
 }
 
-async function sendPhoto(token, fanUuid, mediaUuid) {
+// priceCents > 0 sends the photo as pay-to-view (locked until the fan pays).
+async function sendPhoto(token, fanUuid, mediaUuid, priceCents = 0) {
+  const body = { mediaUuids: [mediaUuid] };
+  if (priceCents > 0) body.price = priceCents;
   const res = await fetch(`${FV}/chats/${fanUuid}/message`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "X-Fanvue-API-Version": V, "Content-Type": "application/json" },
-    body: JSON.stringify({ mediaUuids: [mediaUuid] }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`send ${res.status} ${(await res.text()).slice(0, 120)}`);
 }
@@ -177,11 +196,16 @@ async function tick() {
     return;
   }
   try {
+    // Free for the first FREE_QUOTA images this month, pay-to-view after that.
+    const count = await monthCount(fan_uuid);
+    const priceCents = count > FREE_QUOTA ? PHOTO_PRICE_CENTS : 0;
     const imageUrl = await generate(prompt);
     const token = await fanvueToken();
     const mediaUuid = await upload(token, imageUrl);
-    await sendPhoto(token, fan_uuid, mediaUuid);
-    console.log(`sent photo to ${fan_uuid.slice(0, 8)}`);
+    await sendPhoto(token, fan_uuid, mediaUuid, priceCents);
+    console.log(
+      `sent photo to ${fan_uuid.slice(0, 8)} (#${count} this month, ${priceCents ? `PPV $${(priceCents / 100).toFixed(2)}` : "free"})`
+    );
   } catch (e) {
     console.error("photo job failed:", e.message);
   }
