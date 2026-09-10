@@ -1,0 +1,203 @@
+/* /here — link-in-bio funnel. Kept deliberately lean: one hero, a scrim,
+   bottom-anchored copy, one gradient CTA, and an age-gate overlay. */
+
+.page {
+  position: relative;
+  min-height: 100svh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #050505;
+  color: #fff;
+  isolation: isolate;
+}
+
+.hero {
+  object-fit: cover;
+  object-position: 50% 28%;
+  z-index: -2;
+}
+
+/* Dark scrim so the bottom copy stays legible over any photo. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 5, 5, 0.15) 0%,
+    rgba(5, 5, 5, 0) 32%,
+    rgba(5, 5, 5, 0.55) 68%,
+    rgba(5, 5, 5, 0.92) 100%
+  );
+}
+
+.badge {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 24px calc(28px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.name {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(56px, 22vw, 96px);
+  line-height: 0.92;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.loc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #48d17a;
+  box-shadow: 0 0 10px rgba(72, 209, 122, 0.8);
+}
+
+.tag {
+  margin: 2px 0 6px;
+  font-size: 17px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 22ch;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 17px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(255, 77, 109, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.cta:active {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(1.05);
+}
+
+.ctaArrow {
+  font-size: 19px;
+}
+
+.secondary {
+  align-self: center;
+  margin-top: 2px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+}
+
+.secondary:active {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Age gate overlay. The hero shows through dimmed so LCP is still the photo. */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 5, 5, 0.68);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gateCard {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  background: rgba(18, 18, 20, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 30px 24px 24px;
+}
+
+.gateName {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 34px;
+  line-height: 1;
+  margin: 0 0 14px;
+}
+
+.gateTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.gateText {
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 22px;
+}
+
+.gateYes {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gateNo {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.gateLegal {
+  margin: 18px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.4);
+}
