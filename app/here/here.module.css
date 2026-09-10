@@ -1,6 +1,8 @@
 /* /here — link-in-bio funnel. Kept deliberately lean: one hero, a scrim,
    bottom-anchored copy, one gradient CTA, and an age-gate overlay. */
 
+/* The black base comes from body (--paper: #050505). We deliberately keep .page
+   transparent with NO layer above the hero, so nothing can paint over it. */
 .page {
   position: relative;
   min-height: 100svh;
@@ -9,20 +11,10 @@
   color: #fff;
 }
 
-/* Black fallback as its own layer, so an opaque page background never paints
-   over the absolutely-positioned hero. */
-.page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: #050505;
-}
-
 .hero {
   object-fit: cover;
   object-position: 50% 28%;
-  z-index: 1;
+  z-index: 0;
 }
 
 /* Dark scrim so the bottom copy stays legible over any photo. */
@@ -52,7 +44,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  z-index: 3;
+  z-index: 2;
 }
 
 .content {
@@ -60,7 +52,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 3;
+  z-index: 2;
   padding: 0 24px calc(28px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
