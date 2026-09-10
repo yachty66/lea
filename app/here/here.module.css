@@ -17,6 +17,9 @@
   object-fit: cover;
   object-position: 50% 28%;
   z-index: 1;
+  /* Force a compositing layer so the fill image paints on first load instead of
+     rendering black until a repaint is triggered. */
+  transform: translateZ(0);
 }
 
 /* Dark scrim so the bottom copy stays legible over any photo. */
