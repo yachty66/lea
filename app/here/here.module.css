@@ -11,10 +11,12 @@
   color: #fff;
 }
 
+/* z-index MUST be >= 1: at 0 the fill image doesn't composite over the body
+   base and the page renders black. 1 sits it below the scrim (2) and copy (2). */
 .hero {
   object-fit: cover;
   object-position: 50% 28%;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* Dark scrim so the bottom copy stays legible over any photo. */
