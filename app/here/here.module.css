@@ -1,211 +1,272 @@
-/* /here — link-in-bio funnel. Kept deliberately lean: one hero, a scrim,
-   bottom-anchored copy, one gradient CTA, and an age-gate overlay. */
+/* /here — Bouncy-style link-in-bio for Lea. Centered dark card on a blurred
+   backdrop: hero + name/handle/bio, social row, big CTA cards, a chat row,
+   a 2-col social grid, and a 3-col image grid. */
 
-/* The black base comes from body (--paper: #050505). We deliberately keep .page
-   transparent with NO layer above the hero, so nothing can paint over it. */
-.page {
+.wrap {
   position: relative;
   min-height: 100svh;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  padding: 18px 12px 0;
   color: #fff;
 }
 
-/* z-index MUST be >= 1: at 0 the fill image doesn't composite over the body
-   base and the page renders black. 1 sits it below the scrim (2) and copy (2). */
-.hero {
-  position: absolute;
-  inset: 0;
+/* Warm blurred backdrop = the hero, heavily blurred. */
+.bg {
+  position: fixed;
+  inset: -60px;
+  z-index: 0;
+  background: #0a0a0c center/cover no-repeat;
+  filter: blur(60px) brightness(0.42) saturate(1.1);
+  transform: scale(1.15);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  max-width: 540px;
+  margin: 0 auto;
+  background: #0b0b0e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+/* Hero */
+.heroWrap {
+  position: relative;
+}
+
+.heroImg {
+  display: block;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   object-position: 50% 28%;
-  z-index: 1;
 }
 
-/* Dark scrim so the bottom copy stays legible over any photo. */
-.scrim {
+.heroGrad {
   position: absolute;
   inset: 0;
-  z-index: 2;
-  background: linear-gradient(
-    to bottom,
-    rgba(5, 5, 5, 0.15) 0%,
-    rgba(5, 5, 5, 0) 32%,
-    rgba(5, 5, 5, 0.55) 68%,
-    rgba(5, 5, 5, 0.92) 100%
-  );
+  background: linear-gradient(to bottom, transparent 45%, rgba(11, 11, 14, 0.55) 78%, #0b0b0e 100%);
 }
 
-.badge {
-  position: absolute;
-  top: max(16px, env(safe-area-inset-top));
-  right: 16px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 2;
-}
-
-.content {
+.heroText {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  z-index: 2;
-  padding: 0 24px calc(28px + env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  bottom: 14px;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.grad {
+  background: linear-gradient(90deg, #ffa6c9, #c9a6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .name {
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(56px, 22vw, 96px);
-  line-height: 0.92;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
   margin: 0;
-  letter-spacing: -0.01em;
 }
 
-.loc {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #48d17a;
-  box-shadow: 0 0 10px rgba(72, 209, 122, 0.8);
-}
-
-.tag {
-  margin: 2px 0 6px;
-  font-size: 17px;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.92);
-  max-width: 22ch;
-}
-
-.cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 17px 20px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 10px 30px rgba(255, 77, 109, 0.35);
-  transition: transform 0.15s ease, filter 0.15s ease;
-}
-
-.cta:active {
-  transform: translateY(1px) scale(0.99);
-  filter: brightness(1.05);
-}
-
-.ctaArrow {
-  font-size: 19px;
-}
-
-.secondary {
-  align-self: center;
-  margin-top: 2px;
+.handle {
+  margin: 4px 0 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.62);
 }
 
-.secondary:active {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Age gate overlay. The hero shows through dimmed so LCP is still the photo. */
-.gate {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  /* Let the hero show through as a teaser; a plain overlay (no backdrop-filter)
-     renders reliably. */
-  background: rgba(5, 5, 5, 0.55);
-}
-
-.gateCard {
-  width: 100%;
-  max-width: 360px;
-  text-align: center;
-  background: rgba(18, 18, 20, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
-  padding: 30px 24px 24px;
-}
-
-.gateName {
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 34px;
-  line-height: 1;
-  margin: 0 0 14px;
-}
-
-.gateTitle {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 6px;
-}
-
-.gateText {
-  font-size: 14px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 22px;
-}
-
-.gateYes {
-  display: block;
-  width: 100%;
-  padding: 15px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #ff4d6d, #ff8a3d);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.gateNo {
-  display: inline-block;
-  margin-top: 14px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.gateLegal {
-  margin: 18px 0 0;
-  font-size: 11px;
+.bio {
+  margin: 8px auto 0;
+  max-width: 34ch;
+  font-size: 13.5px;
   line-height: 1.4;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Body */
+.body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.socialRow {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 2px 0 6px;
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #17171b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.iconBtn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Big CTA cards */
+.bigCard {
+  position: relative;
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  text-decoration: none;
+}
+
+.bigCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.capGrad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+.cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  text-align: center;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+/* Horizontal link row */
+.rowLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #16161a;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 13px 16px;
+  text-decoration: none;
+  color: #fff;
+}
+
+.rowIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #0a84ff;
+  flex: none;
+}
+
+.rowIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rowText {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rowChevron {
+  margin-left: auto;
   color: rgba(255, 255, 255, 0.4);
+  font-size: 20px;
+}
+
+/* 2-col social grid */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.gridCard {
+  position: relative;
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 5 / 4;
+  text-decoration: none;
+}
+
+.gridCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gridBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  color: #fff;
+}
+
+.gridBadge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.gridLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 3-col image grid */
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.thumb {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 18px 0 26px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
 }
