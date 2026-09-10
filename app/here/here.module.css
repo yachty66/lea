@@ -8,20 +8,19 @@
   overflow: hidden;
   background: #050505;
   color: #fff;
-  isolation: isolate;
 }
 
 .hero {
   object-fit: cover;
   object-position: 50% 28%;
-  z-index: -2;
+  z-index: 0;
 }
 
 /* Dark scrim so the bottom copy stays legible over any photo. */
 .scrim {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 1;
   background: linear-gradient(
     to bottom,
     rgba(5, 5, 5, 0.15) 0%,
@@ -44,6 +43,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  z-index: 2;
 }
 
 .content {
@@ -51,6 +51,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 2;
   padding: 0 24px calc(28px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
