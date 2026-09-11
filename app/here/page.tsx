@@ -100,7 +100,7 @@ export default function Here() {
 
           <a className={styles.bigCard} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_card1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/here/c1.jpg" alt="" loading="lazy" decoding="async" />
+            <img src="/here/c1.jpg" alt="" fetchPriority="high" decoding="async" />
             <div className={styles.capGrad} />
             <span className={`${styles.cap} ${styles.grad}`}>mein kleines geheimnis 💌</span>
           </a>
