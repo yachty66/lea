@@ -93,7 +93,7 @@
 
 /* Body */
 .body {
-  padding: 16px;
+  padding: 10px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -103,7 +103,7 @@
   display: flex;
   justify-content: center;
   gap: 12px;
-  padding: 2px 0 6px;
+  padding: 0 0 4px;
 }
 
 .iconBtn {
@@ -128,7 +128,7 @@
   display: block;
   border-radius: 18px;
   overflow: hidden;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   text-decoration: none;
 }
 
