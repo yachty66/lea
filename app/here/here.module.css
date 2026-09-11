@@ -24,7 +24,7 @@
 .card {
   position: relative;
   z-index: 1;
-  max-width: 540px;
+  max-width: 600px;
   margin: 0 auto;
   background: #0b0b0e;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -42,9 +42,9 @@
   display: block;
   width: 100%;
   /* Landscape like the reference, so the first CTA card + caption show on landing. */
-  aspect-ratio: 5 / 4;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: 50% 40%;
+  object-position: 50% 42%;
 }
 
 .heroGrad {
