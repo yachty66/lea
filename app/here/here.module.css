@@ -152,9 +152,19 @@
   left: 0;
   right: 0;
   bottom: 18px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   font-size: 21px;
   font-weight: 800;
+}
+
+.capIcon {
+  width: 23px;
+  height: 23px;
+  flex: none;
+  color: #ffa6c9;
 }
 
 /* Horizontal link row */

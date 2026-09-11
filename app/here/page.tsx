@@ -40,6 +40,15 @@ function XIcon() {
   );
 }
 
+function EnvelopeIcon() {
+  return (
+    <svg className={styles.capIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m3.5 6.5 8.5 6 8.5-6" />
+    </svg>
+  );
+}
+
 function ThreadsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -92,7 +101,10 @@ export default function Here() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/here/c1.jpg" alt="" fetchPriority="high" decoding="async" />
             <div className={styles.capGrad} />
-            <span className={`${styles.cap} ${styles.grad}`}>mein kleines geheimnis 💌</span>
+            <span className={styles.cap}>
+              <span className={styles.grad}>mein kleines geheimnis</span>
+              <EnvelopeIcon />
+            </span>
           </a>
 
           <div className={styles.grid2}>
