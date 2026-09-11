@@ -105,13 +105,6 @@ export default function Here() {
             <span className={`${styles.cap} ${styles.grad}`}>mein kleines geheimnis 💌</span>
           </a>
 
-          <a className={styles.bigCard} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_card2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/here/c2.jpg" alt="" loading="lazy" decoding="async" />
-            <div className={styles.capGrad} />
-            <span className={`${styles.cap} ${styles.grad}`}>willst du mehr? 😏</span>
-          </a>
-
           <a className={styles.rowLink} href={CHAT} target="_blank" rel="noopener" data-ph="chat_row">
             <span className={styles.rowIcon}>
               <ChatIcon />
@@ -147,7 +140,7 @@ export default function Here() {
           </div>
 
           <div className={styles.grid3}>
-            {["g1", "g2", "g3"].map((g) => (
+            {["g1", "c2", "g3"].map((g) => (
               <a key={g} className={styles.thumb} href={FANVUE} target="_blank" rel="noopener" data-ph={`thumb_${g}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/here/${g}.jpg`} alt="" loading="lazy" decoding="async" />
