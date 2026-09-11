@@ -5,9 +5,9 @@ import styles from "./here.module.css";
 export const dynamic = "force-static";
 
 const FANVUE = "https://www.fanvue.com/leaberlin?utm_source=biolink&utm_medium=here";
-const INSTAGRAM = "https://www.instagram.com/lea_fhain/";
+const INSTAGRAM = "https://www.instagram.com/lea__fhain/";
 const TWITTER = "https://x.com/leaberlinn";
-const THREADS = "https://www.threads.com/@lea_fhain";
+const THREADS = "https://www.threads.com/@lea__fhain";
 
 export const metadata: Metadata = {
   title: "Lea 🖤",
@@ -76,7 +76,7 @@ export default function Here() {
           <div className={styles.heroGrad} />
           <div className={styles.heroText}>
             <h1 className={`${styles.name} ${styles.grad}`}>Lea 🖤</h1>
-            <p className={styles.handle}>@lea_fhain</p>
+            <p className={styles.handle}>@lea__fhain</p>
             <p className={styles.bio}>
               brave nachbarstochter aus friedrichshain… aber manche geheimnisse teil ich nur ganz
               privat.
