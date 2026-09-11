@@ -122,6 +122,12 @@
   height: 22px;
 }
 
+.iconBtn img {
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
+}
+
 /* Big CTA cards */
 .bigCard {
   position: relative;
@@ -246,6 +252,13 @@
 .gridBadge svg {
   width: 16px;
   height: 16px;
+}
+
+/* Fanvue mark img in the badge (extra .gridCard prefix beats `.gridCard img`). */
+.gridCard .gridBadge img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 /* Fanvue's own squircle logo, so no dark circle wrapper. The extra .gridCard

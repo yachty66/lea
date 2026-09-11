@@ -81,6 +81,10 @@ export default function HereContent({ handle, instagram, threads }: Props) {
             <a className={styles.iconBtn} href={threads} target="_blank" rel="noopener" data-ph="threads_icon" aria-label="Threads">
               <ThreadsIcon />
             </a>
+            <a className={styles.iconBtn} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_icon" aria-label="Fanvue">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/here/fanvue-mark.png" alt="" />
+            </a>
           </div>
 
           <a className={styles.bigCard} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_card1">
@@ -115,8 +119,10 @@ export default function HereContent({ handle, instagram, threads }: Props) {
             <a className={styles.gridCard} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_card3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/here/fv.jpg" alt="" loading="lazy" decoding="async" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className={styles.fanvueBadge} src="/here/fanvue-logo.png" alt="Fanvue" loading="lazy" decoding="async" />
+              <span className={styles.gridBadge}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/here/fanvue-mark.png" alt="" loading="lazy" decoding="async" />
+              </span>
               <span className={`${styles.gridLabel} ${styles.grad}`}>Fanvue</span>
             </a>
           </div>
