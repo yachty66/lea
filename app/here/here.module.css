@@ -41,10 +41,10 @@
 .heroImg {
   display: block;
   width: 100%;
-  /* Landscape like the reference, so the first CTA card peeks on landing. */
-  aspect-ratio: 7 / 6;
+  /* Landscape like the reference, so the first CTA card + caption show on landing. */
+  aspect-ratio: 5 / 4;
   object-fit: cover;
-  object-position: 50% 32%;
+  object-position: 50% 40%;
 }
 
 .heroGrad {
