@@ -129,6 +129,8 @@ export default function Here() {
             <a className={styles.gridCard} href={FANVUE} target="_blank" rel="noopener" data-ph="fanvue_card3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/here/fv.jpg" alt="" loading="lazy" decoding="async" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className={styles.fanvueBadge} src="/here/fanvue-logo.png" alt="Fanvue" loading="lazy" decoding="async" />
               <span className={`${styles.gridLabel} ${styles.grad}`}>Fanvue</span>
             </a>
           </div>
