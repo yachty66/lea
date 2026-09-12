@@ -1,76 +1,76 @@
 {
-  "text": " You've been quiet for two hours. I'm restructuring. Restructuring what? Tea. Chamomile. Now talk to me. Fine. One agenda item. Love is not a meeting! Is that a ring box? It's item seven. You were going to propose? It was scheduled. You have ruined the timeline. Park bench. Tomorrow. 6 p.m. sharp.",
+  "text": " You've been quiet for two hours. I'm restructuring. Restructuring what? Tea. Chamomile. Now talk to me. Fine. One agenda item. Love is not a meeting. Is that a ring box? It's item seven. You were going to propose? It was scheduled. You have ruined the timeline. Park bench. Tomorrow. 6 p.m. sharp.",
   "chunks": [
     {
       "timestamp": [
         1.16159375,
-        4.04159375
+        3.8015937500000003
       ],
       "text": " You've been quiet for two hours.",
       "speaker": null
     },
     {
       "timestamp": [
-        7.8815937499999995,
-        9.16159375
+        7.16159375,
+        8.96159375
       ],
       "text": " I'm restructuring.",
       "speaker": null
     },
     {
       "timestamp": [
-        13.16159375,
-        14.64159375
+        12.96159375,
+        14.46159375
       ],
       "text": " Restructuring what?",
       "speaker": null
     },
     {
       "timestamp": [
-        15.56159375,
-        16.16159375
+        15.88159375,
+        16.32159375
       ],
       "text": " Tea.",
       "speaker": null
     },
     {
       "timestamp": [
-        16.801593750000002,
-        17.641593750000002
+        17.38159375,
+        17.941593750000003
       ],
       "text": " Chamomile.",
       "speaker": null
     },
     {
       "timestamp": [
-        18.441593750000003,
-        19.441593750000003
+        18.961593750000002,
+        19.86159375
       ],
       "text": " Now talk to me.",
       "speaker": null
     },
     {
       "timestamp": [
-        20.801593750000002,
-        21.52159375
+        22.481593750000002,
+        23.50159375
       ],
       "text": " Fine.",
       "speaker": null
     },
     {
       "timestamp": [
-        22.16159375,
-        23.52159375
+        24.02159375,
+        25.121593750000002
       ],
       "text": " One agenda item.",
       "speaker": null
     },
     {
       "timestamp": [
-        27.68159375,
-        29.70159375
+        26.301593750000002,
+        28.34159375
       ],
-      "text": " Love is not a meeting!",
+      "text": " Love is not a meeting.",
       "speaker": null
     },
     {
@@ -83,7 +83,7 @@
     },
     {
       "timestamp": [
-        39.21659375,
+        39.25659375000001,
         41.03659375
       ],
       "text": " It's item seven.",
@@ -91,7 +91,7 @@
     },
     {
       "timestamp": [
-        42.93659375,
+        42.95659375,
         45.016593750000006
       ],
       "text": " You were going to propose?",
@@ -99,8 +99,8 @@
     },
     {
       "timestamp": [
-        45.77659375,
-        49.95659375
+        45.016593750000006,
+        49.976593750000006
       ],
       "text": " It was scheduled. You have ruined the timeline.",
       "speaker": null
@@ -108,7 +108,7 @@
     {
       "timestamp": [
         51.696593750000005,
-        56.21659375
+        56.196593750000005
       ],
       "text": " Park bench. Tomorrow. 6 p.m. sharp.",
       "speaker": null
