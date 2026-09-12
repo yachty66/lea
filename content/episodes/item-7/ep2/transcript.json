@@ -91,50 +91,26 @@
     },
     {
       "timestamp": [
-        44.916593750000004,
-        46.976593750000006
+        42.93659375,
+        45.016593750000006
       ],
       "text": " You were going to propose?",
       "speaker": null
     },
     {
       "timestamp": [
-        47.836593750000006,
-        49.016593750000006
+        45.77659375,
+        49.95659375
       ],
-      "text": " It was scheduled.",
+      "text": " It was scheduled. You have ruined the timeline.",
       "speaker": null
     },
     {
       "timestamp": [
-        49.95659375,
-        51.93659375
+        51.696593750000005,
+        56.21659375
       ],
-      "text": " You have ruined the timeline.",
-      "speaker": null
-    },
-    {
-      "timestamp": [
-        53.65659375,
-        54.376593750000005
-      ],
-      "text": " Park bench.",
-      "speaker": null
-    },
-    {
-      "timestamp": [
-        55.096593750000004,
-        55.49659375
-      ],
-      "text": " Tomorrow.",
-      "speaker": null
-    },
-    {
-      "timestamp": [
-        56.93659375,
-        58.196593750000005
-      ],
-      "text": " 6 p.m. sharp.",
+      "text": " Park bench. Tomorrow. 6 p.m. sharp.",
       "speaker": null
     }
   ],
