@@ -19,7 +19,7 @@ Only the speaking character moves their lips. Quiet bar ambience, no music, no s
 Video prompt:
 Keep the characters, setting and art style exactly as in the image. Static camera.
 The man in the green suit speaks first, warm pleading male voice, holding her hands: "Forget the numbers. How do you feel?"
-Then the woman in the purple dress replies, thrown off, slower female voice: "...Efficiency is a feeling."
+Then the woman in the purple dress replies after a hesitant pause, thrown off, slower female voice: "Efficiency is a feeling."
 Then the man replies, gentle but firm male voice: "It is not."
 Only the speaking character moves their lips. Quiet bar ambience, no music, no subtitles.
 
