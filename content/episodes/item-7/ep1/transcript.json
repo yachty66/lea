@@ -1,0 +1,137 @@
+{
+  "text": " Happy anniversary! I wrote you a poem! Sweet. I prepared a deck. Relationship, Q3 review. A deck? Communication, up. Date frequency, down 12%. You tracked our dates? Someone had to. Forget the numbers. How do you feel? Efficiency is a feeling. It is not. Wait, what is item seven? Item one was moving in. Item four was the joint calendar. What is seven? Classified.",
+  "chunks": [
+    {
+      "timestamp": [
+        0.57096875,
+        4.17096875
+      ],
+      "text": " Happy anniversary! I wrote you a poem!",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        5.970968750000001,
+        8.37096875
+      ],
+      "text": " Sweet. I prepared a deck.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        8.97096875,
+        11.47096875
+      ],
+      "text": " Relationship, Q3 review.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        12.47096875,
+        14.47096875
+      ],
+      "text": " A deck?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        15.370968750000001,
+        20.37096875
+      ],
+      "text": " Communication, up. Date frequency, down 12%.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        21.17096875,
+        22.87096875
+      ],
+      "text": " You tracked our dates?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        23.67096875,
+        24.970968749999997
+      ],
+      "text": " Someone had to.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        27.470968749999997,
+        28.770968749999998
+      ],
+      "text": " Forget the numbers.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        30.33846875,
+        31.49846875
+      ],
+      "text": " How do you feel?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        33.93846875,
+        38.15846875
+      ],
+      "text": " Efficiency is a feeling.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        39.71846875,
+        40.67846875
+      ],
+      "text": " It is not.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        43.31846875,
+        46.378468749999996
+      ],
+      "text": " Wait, what is item seven?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        47.49846875,
+        49.618468750000005
+      ],
+      "text": " Item one was moving in.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        49.618468750000005,
+        52.07846875
+      ],
+      "text": " Item four was the joint calendar.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        52.07846875,
+        53.338468750000004
+      ],
+      "text": " What is seven?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        55.71846875,
+        56.67846875
+      ],
+      "text": " Classified.",
+      "speaker": null
+    }
+  ],
+  "inferred_languages": [
+    "en"
+  ],
+  "diarization_segments": []
+}
