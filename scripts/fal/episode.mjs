@@ -73,8 +73,11 @@ if (mode === "--videos") {
 }
 
 if (mode === "--stitch") {
-  const list = clips.map((c) => `file 'clip-${c.n}.mp4'`).join("\n");
-  writeFileSync(join(epDir, "concat.txt"), list);
-  execSync(`ffmpeg -v error -y -f concat -safe 0 -i concat.txt -c:v libx264 -crf 18 -preset medium -c:a aac -b:a 192k episode.mp4`, { cwd: epDir, stdio: "inherit" });
+  // concat FILTER with normalized fps/scale/timebase; the concat demuxer silently
+  // freezes video when inputs have mismatched stream parameters (e.g. a re-encoded clip).
+  const ins = clips.map((c) => `-i clip-${c.n}.mp4`).join(" ");
+  const norm = clips.map((c, i) => `[${i}:v]fps=25,scale=1076:1928,setsar=1,settb=AVTB[v${i}];[${i}:a]aresample=48000[a${i}]`).join(";");
+  const pairs = clips.map((c, i) => `[v${i}][a${i}]`).join("");
+  execSync(`ffmpeg -v error -y ${ins} -filter_complex "${norm};${pairs}concat=n=${clips.length}:v=1:a=1[v][a]" -map "[v]" -map "[a]" -c:v libx264 -crf 18 -preset medium -c:a aac -b:a 192k episode.mp4`, { cwd: epDir, stdio: "inherit" });
   console.log(`stitched -> ${join(epDir, "episode.mp4")}`);
 }
