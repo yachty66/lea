@@ -2,11 +2,11 @@
 
 ## Clip 1 (image: the two sitting at a small round wooden table in a cozy dark-wood bar like the account's hit video, he holds a single red rose, she has a slim laptop open in front of her, bold white text "ITEM 7 - PART 1" at the top)
 Video prompt:
-Low-poly papercraft animation, static camera, keep both characters exactly as in the image. Lively, comedic couple dialogue with big gestures and exaggerated expressions.
-The MAN in the GREEN suit speaks first, warm, excited male voice, holding out the rose, while the woman's mouth stays closed: "Happy anniversary! I wrote you a POEM!"
-Then the WOMAN in the PURPLE dress replies, crisp, businesslike female voice, turning the laptop toward him, while the man's mouth stays closed and his smile fades: "Sweet. I prepared a DECK. Relationship: Q3 REVIEW."
-Then the MAN replies, small, worried male voice, rose drooping, while the woman's mouth stays closed: "A... DECK?"
-Only the speaking character moves their lips. Quiet bar ambience with glasses clinking, no music, no subtitles.
+Low-poly papercraft animation.
+The man in the green suit speaks first, warm excited male voice: "Happy anniversary! I wrote you a poem!"
+Then the woman in the purple dress replies, crisp businesslike female voice, turning the laptop toward him: "Sweet. I prepared a deck. Relationship: Q3 review."
+Then the man replies, worried male voice: "A... deck?"
+Only the speaking character moves their lips. Quiet bar ambience, no music, no subtitles.
 
 ## Clip 2 (image: same bar table, she presents at the laptop gesturing at the screen like a CEO, he slumps holding the drooping rose)
 Video prompt:
