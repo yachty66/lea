@@ -25,10 +25,9 @@ Only the speaking character moves their lips. Quiet bar ambience, no music, no s
 
 ## Clip 4 (image: same bar table, the laptop screen glows showing a slide reading NEXT STEPS: ITEM 7, he leans in squinting at it, she reaches for the laptop lid)
 Video prompt:
-Keep the characters, setting and art style exactly as in the image. Static camera.
-The man in the green suit speaks first, curious male voice, leaning toward the screen: "Wait. What is item seven?"
+Keep the characters and setting exactly as in the image. Static camera.
+The man in the green suit speaks, curious male voice: "Wait. What is item seven?"
 Then the man speaks again, faster, panicking: "Item one was moving in. Item four was the joint calendar. What is seven?!"
-The woman in the purple dress slams the laptop shut and replies, sharp clipped female voice, looking away: "Classified."
-The man stares at her in shock.
-Only the speaking character moves their lips. Quiet bar ambience, a sharp laptop slam, no music, no subtitles.
+Then the woman in the purple dress speaks, sharp female voice, slamming the laptop shut: "Classified."
+Quiet bar ambience, no music, no subtitles.
 
