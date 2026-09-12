@@ -30,4 +30,4 @@ Keep the characters and setting exactly as in the image. Static camera.
 The man in the green suit speaks, overwhelmed happy male voice, hands on his head: "You were going to propose?!"
 Then the woman in the purple dress speaks, composed precise female voice, straightening her dress: "It was scheduled. You have ruined the timeline."
 Then the woman speaks again, firm female voice, turning to leave: "Park bench. Tomorrow. Six pm sharp."
-Quiet living room, her decisive footsteps, no music, no subtitles.
+Quiet living room, her decisive footsteps, no other voices, no music, no subtitles.
