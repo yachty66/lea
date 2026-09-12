@@ -10,10 +10,9 @@ Only the speaking character moves their lips. Quiet bar ambience, no music, no s
 
 ## Clip 2 (image: same bar table, she presents at the laptop gesturing at the screen like a CEO, he slumps holding the drooping rose)
 Video prompt:
-Low-poly papercraft animation, static camera, keep both characters exactly as in the image.
-The WOMAN in the PURPLE dress speaks first, fast, confident, presenting female voice, gesturing at the screen, while the man's mouth stays closed: "Communication: UP. Date frequency: DOWN twelve percent."
-Then the MAN in the GREEN suit replies, hurt, rising male voice, hand on his chest, while the woman's mouth stays closed: "You TRACKED our DATES?!"
-Then the WOMAN replies, calm, matter-of-fact female voice, closing one slide, while the man's mouth stays closed and he gasps: "Someone HAD to."
+The woman in the purple dress speaks first, fast confident presenting female voice, gesturing at the screen: "Communication: up. Date frequency: down twelve percent."
+Then the man in the green suit replies, hurt rising male voice: "You tracked our dates?!"
+Then the woman replies, calm matter-of-fact female voice: "Someone had to."
 Only the speaking character moves their lips. Quiet bar ambience, no music, no subtitles.
 
 ## Clip 3 (image: same bar table, he reaches across the table and takes both her hands, the rose lying between them, she looks caught off guard)
