@@ -1,0 +1,113 @@
+{
+  "text": " Item 7. I prepared a full deck. Forget the deck. Oh my god. Oh my god. Marry me. Terms? Forever. Non-negotiable. Yes! I accept all terms! Are you crying? No, it's allergies. Sign here. Venue booked? Caterer confirmed. Wedding is Saturday. This Saturday? I don't do long engagements.",
+  "chunks": [
+    {
+      "timestamp": [
+        0.9590937500000001,
+        4.3990937500000005
+      ],
+      "text": " Item 7. I prepared a full deck.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        6.23909375,
+        7.81909375
+      ],
+      "text": " Forget the deck.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        10.959093750000001,
+        14.559093749999999
+      ],
+      "text": " Oh my god. Oh my god.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        15.47909375,
+        21.17909375
+      ],
+      "text": " Marry me. Terms? Forever. Non-negotiable.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        21.17909375,
+        24.29909375
+      ],
+      "text": " Yes! I accept all terms!",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        31.199093750000003,
+        32.35909375
+      ],
+      "text": " Are you crying?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        33.99909375,
+        36.73909375
+      ],
+      "text": " No, it's allergies.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        39.299093750000004,
+        40.17909375000001
+      ],
+      "text": " Sign here.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        45.71909375,
+        46.619093750000005
+      ],
+      "text": " Venue booked?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        47.09909375,
+        48.23909375
+      ],
+      "text": " Caterer confirmed.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        48.479093750000004,
+        49.57909375
+      ],
+      "text": " Wedding is Saturday.",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        51.399093750000006,
+        52.81909375000001
+      ],
+      "text": " This Saturday?",
+      "speaker": null
+    },
+    {
+      "timestamp": [
+        55.55909375,
+        57.45909375000001
+      ],
+      "text": " I don't do long engagements.",
+      "speaker": null
+    }
+  ],
+  "inferred_languages": [
+    "en"
+  ],
+  "diarization_segments": []
+}
