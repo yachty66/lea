@@ -17,10 +17,10 @@ Only the speaking character moves their lips. Quiet bar ambience, no music, no s
 
 ## Clip 3 (image: same bar table, he reaches across the table and takes both her hands, the rose lying between them, she looks caught off guard)
 Video prompt:
-Low-poly papercraft animation, static camera, keep both characters exactly as in the image.
-The MAN in the GREEN suit speaks first, warm, pleading, emotional male voice, holding her hands, while the woman's mouth stays closed: "Forget the numbers. How do you FEEL?"
-Then the WOMAN in the PURPLE dress replies, thrown off, slower female voice, eyes darting, while the man's mouth stays closed: "...Efficiency IS a feeling."
-Then the MAN replies, gentle but firm male voice, squeezing her hands, while the woman's mouth stays closed and looks away: "It is NOT."
+Keep the characters, setting and art style exactly as in the image. Static camera.
+The man in the green suit speaks first, warm pleading male voice, holding her hands: "Forget the numbers. How do you feel?"
+Then the woman in the purple dress replies, thrown off, slower female voice: "...Efficiency is a feeling."
+Then the man replies, gentle but firm male voice: "It is not."
 Only the speaking character moves their lips. Quiet bar ambience, no music, no subtitles.
 
 ## Clip 4 (image: same bar table, the laptop screen glows showing a slide reading NEXT STEPS: ITEM 7, he leans in squinting at it, she reaches for the laptop lid)
