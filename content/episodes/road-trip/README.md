@@ -10,3 +10,5 @@ Rules: hook in the first 5s of clip 1, every clip ends on a mini-turn, clip 4 en
 Frames: nano-banana-2/edit, refs = the two type PNGs + car-lost/frame.png as style ref ("use exactly the art style of the third image: muted colors, everything low poly faceted, no outlines, close up").
 Captions on posting: "MBTI Road Trip - Part N. Follow for Part N+1 tomorrow. #mbti #entp #isfj #16personalities"
 Stitch: ffmpeg concat of clip1-4, no transitions.
+
+NOTE: kept as unproduced B-test. Season 1 in production is episodes/item-7 (ENFJ+ENTJ, oriented on the account hit videos).
