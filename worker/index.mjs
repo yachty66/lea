@@ -33,10 +33,7 @@ process.on("uncaughtException", (e) => console.error("uncaughtException:", e?.me
 // shared chokepoint. A fan gets at most one photo per PHOTO_WINDOW_S seconds.
 const PHOTO_WINDOW_S = Number(process.env.PHOTO_WINDOW_S || 60);
 
-// Monetization: each fan gets FREE_QUOTA images per calendar month; every image
-// after that is sent pay-to-view at PHOTO_PRICE_CENTS (Fanvue minimum is 300 =
-// $3.00). The fanvue_photo_log rows double as the monthly usage counter.
-const FREE_QUOTA = Number(process.env.PHOTO_FREE_QUOTA || 10);
+// Every chat image is pay-to-view. Fanvue's minimum is 300 cents ($3.00).
 const PHOTO_PRICE_CENTS = Math.max(300, Number(process.env.PHOTO_PRICE_CENTS || 300));
 
 async function ensureSchema() {
@@ -196,15 +193,13 @@ async function tick() {
     return;
   }
   try {
-    // Free for the first FREE_QUOTA images this month, pay-to-view after that.
     const count = await monthCount(fan_uuid);
-    const priceCents = count > FREE_QUOTA ? PHOTO_PRICE_CENTS : 0;
     const imageUrl = await generate(prompt);
     const token = await fanvueToken();
     const mediaUuid = await upload(token, imageUrl);
-    await sendPhoto(token, fan_uuid, mediaUuid, priceCents);
+    await sendPhoto(token, fan_uuid, mediaUuid, PHOTO_PRICE_CENTS);
     console.log(
-      `sent photo to ${fan_uuid.slice(0, 8)} (#${count} this month, ${priceCents ? `PPV $${(priceCents / 100).toFixed(2)}` : "free"})`
+      `sent photo to ${fan_uuid.slice(0, 8)} (#${count} this month, PPV $${(PHOTO_PRICE_CENTS / 100).toFixed(2)})`
     );
   } catch (e) {
     console.error("photo job failed:", e.message);
