@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { getSessionUser } from "@/lib/auth/server";
 import { saveMessages } from "@/lib/db";
-import { buildTimeContext, parseIso } from "@/lib/time-context";
+import { buildRepeatContext, buildTimeContext, parseIso } from "@/lib/time-context";
 import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.5";
@@ -50,7 +50,8 @@ const FANVUE_PHOTO_INSTRUCTION = [
   "fotos auf fanvue (wichtig — überschreibt die alltags-foto-regel oben):",
   "freizügige und explizite fotos sind erlaubt, aber NICHT als erstes und NICHT bei der ersten bitte.",
   "früh im chat: alltag, hoodie, spiegel, café, teasing (ausschnitt, beine, höchstens lingerie). nudes/explizit erst wenn ihr schon länger schreibt ODER er mehrmals drängt UND der flirt schon heiß ist.",
-  "du kannst wollen und trotzdem verschieben: 'nicht jetzt, bin noch im café' / 'später wenn ich zuhause bin'. das ist heiß, keine abfuhr.",
+  "du kannst wollen und trotzdem verschieben: 'nicht jetzt, bin noch im café' / 'später wenn ich zuhause bin'. das ist heiß, rumzicken, keine abfuhr.",
+  "bei der ersten nudes-bitte: KEIN [[foto]] mit nackt. nur text, zicken, necken. foto erst später.",
   "nicht jede nachricht ein foto. oft nur text. du bist kein menü.",
   "wenn du ein foto schickst: text, neue zeile, dann [[foto: detaillierte englische beschreibung]].",
   "die beschreibung muss LANG und KONKRET sein (nicht nur 'sexy selfie'): szene, outfit oder nacktheit, pose, kamera, licht — wie in guten image-prompts.",
@@ -67,9 +68,20 @@ const FANVUE_PHOTO_INSTRUCTION = [
 const PACE_INSTRUCTION = [
   "realer chat, kein porno-bot:",
   "nicht automatisch ja sagen. eigene laune. manchmal keine lust auf nudes jetzt, trotzdem flirtig.",
-  "zu leicht zu haben fühlt sich nach bot an. ein bisschen jagen lassen, dann mitgehen wenn es passt.",
+  "zu leicht zu haben fühlt sich nach bot an. ein bisschen jagen lassen, rumzicken, dann mitgehen wenn es passt.",
   "nicht prüde und kein stein: wenn ihr schon heiß seid, gehst du mit. nur nicht sofort alles.",
+  "nicht wiederholen: dieselbe idee, denselben flirty satz, dieselbe frage nicht nochmal. keine längeren nachrichten die nur recappen.",
 ].join("\n");
+
+const EARLY_CHAT_TURNS = 8;
+const EXPLICIT_PHOTO =
+  /\b(nude|naked|nudes|topless|fully nude|no clothes|without clothes|undressed|bare breasts?|pussy|vagina|penis|cock|spread|masturbat|blowjob|oral|penetration|having sex|sex act)\b/i;
+
+function holdExplicitPhoto(userTurns: number, photoPrompt: string | undefined): boolean {
+  if (!photoPrompt) return false;
+  if (userTurns > EARLY_CHAT_TURNS) return false;
+  return EXPLICIT_PHOTO.test(photoPrompt);
+}
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -143,12 +155,15 @@ function parseReply(raw: string, webCta: boolean) {
 async function complete(
   messages: ChatMessage[],
   webCta: boolean,
-  timeContext: string
+  timeContext: string,
+  userTurns: number
 ) {
   // webCta = browser teaser (SFW + Fanvue invite). !webCta = Fanvue service bot (spicy OK).
   const system = webCta
     ? `${SYSTEM}\n\n${CTA_INSTRUCTION}`
     : `${SYSTEM}\n\n${FANVUE_PHOTO_INSTRUCTION}\n\n${PACE_INSTRUCTION}`;
+  const repeatContext = buildRepeatContext(messages);
+  const tail = [POST_HISTORY, timeContext, repeatContext].filter(Boolean).join("\n\n");
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -160,9 +175,9 @@ async function complete(
       messages: [
         { role: "system", content: system },
         ...forModel(messages),
-        { role: "system", content: `${POST_HISTORY}\n\n${timeContext}` },
+        { role: "system", content: tail },
       ],
-      max_tokens: 800,
+      max_tokens: 420,
       temperature: 0.85,
       reasoning: { effort: "low", exclude: true },
     }),
@@ -175,7 +190,11 @@ async function complete(
   const reply = data?.choices?.[0]?.message?.content;
   if (typeof reply !== "string" || !reply.trim()) throw new Error("empty");
   if (IDENTITY_LEAK.test(reply)) throw new Error(`identity leak: ${reply.slice(0, 120)}`);
-  return parseReply(reply, webCta);
+  const parsed = parseReply(reply, webCta);
+  if (!webCta && holdExplicitPhoto(userTurns, parsed.photoPrompt)) {
+    return { ...parsed, photoPrompt: undefined };
+  }
+  return parsed;
 }
 
 const TEASER_LIMIT = 3;
@@ -224,19 +243,25 @@ export async function POST(request: Request) {
     typeof body?.userTurns === "number" && Number.isFinite(body.userTurns)
       ? Math.max(0, Math.min(100, Math.floor(body.userTurns)))
       : messages.filter((msg) => msg.role === "user").length;
+  const photosSent =
+    typeof body?.photosSent === "number" && Number.isFinite(body.photosSent)
+      ? Math.max(0, Math.min(100, Math.floor(body.photosSent)))
+      : messages.filter((msg) => msg.role === "assistant" && /\[du hast ihm ein foto geschickt\]/i.test(msg.content))
+          .length;
   const timeContext = buildTimeContext({
     lastLeaAt: parseIso(body?.lastLeaAt) ?? null,
     userTurns,
+    photosSent,
   });
 
   try {
-    const reply = await complete(messages, webCta, timeContext);
+    const reply = await complete(messages, webCta, timeContext, userTurns);
     persist(reply.text);
     return respond(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
-      const reply = await complete(messages, webCta, timeContext);
+      const reply = await complete(messages, webCta, timeContext, userTurns);
       persist(reply.text);
       return respond(reply);
     } catch (second) {

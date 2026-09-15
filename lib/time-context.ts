@@ -3,6 +3,7 @@ const TZ = "Europe/Berlin";
 export type TimeHints = {
   lastLeaAt?: string | null;
   userTurns?: number | null;
+  photosSent?: number | null;
 };
 
 function berlinClock(now = new Date()) {
@@ -74,10 +75,19 @@ export function buildTimeContext(hints: TimeHints = {}, now = new Date()): strin
   lines.push(`alltag (weich, kein skript): ${weekdayHint(weekday)}.`);
 
   const turns = typeof hints.userTurns === "number" ? hints.userTurns : null;
-  if (turns !== null && turns <= 6) {
-    lines.push("chat bisher: noch früh. nicht sofort nudes/sex — erst necken, kennenlernen, eigene laune.");
+  if (turns !== null && turns <= 8) {
+    lines.push(
+      "chat bisher: noch früh. wenn er nudes will: rumzicken, necken, AUSREDEN (café, bahn, wg, später). kein nacktfoto, oft gar kein foto."
+    );
   } else if (turns !== null) {
     lines.push("chat bisher: ihr kennt euch schon etwas. weiter gehen darf, wenn der flirt wirklich läuft.");
+  }
+
+  const photos = typeof hints.photosSent === "number" ? hints.photosSent : null;
+  if (photos !== null && photos > 0) {
+    lines.push(
+      `du hast ihm in diesem chat schon ${photos} foto${photos === 1 ? "" : "s"} geschickt. nicht jedes mal wieder eins — oft nur text.`
+    );
   }
 
   lines.push(
@@ -91,4 +101,25 @@ export function buildTimeContext(hints: TimeHints = {}, now = new Date()): strin
   );
 
   return lines.join("\n");
+}
+
+export function buildRepeatContext(
+  messages: { role: string; content: string }[]
+): string {
+  const last = messages
+    .filter((m) => m.role === "assistant")
+    .slice(-2)
+    .map((m) =>
+      m.content
+        .replace(/\[du hast ihm ein foto geschickt\]/gi, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter(Boolean);
+  if (!last.length) return "";
+  return [
+    "wiederholung (streng): deine letzten nachrichten waren:",
+    ...last.map((t) => `- ${t.slice(0, 220)}`),
+    "denselben inhalt NICHT nochmal schreiben, auch nicht umformuliert. kein recap. wenn du nichts neues hast: 1-2 kurze sätze, fertig. lieber zu kurz als nochmal die gleiche idee auswalzen.",
+  ].join("\n");
 }

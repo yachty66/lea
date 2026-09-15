@@ -160,11 +160,13 @@ async function reply(
   const prior = ordered.slice(0, -1);
   const lastLeaMsg = [...prior].reverse().find((m) => m.sender?.uuid === me);
   const userTurns = history.filter((m) => m.role === "user").length;
+  const photosSent = ordered.filter((m) => m.sender?.uuid === me && m.hasMedia).length;
 
   const result = await internal("/api/chat", origin, {
     messages: history,
     lastLeaAt: lastLeaMsg ? messageTime(lastLeaMsg) ?? null : null,
     userTurns,
+    photosSent,
   }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))));
   const text = (result.text ?? "").trim();
   const wantsPhoto = typeof result.photoPrompt === "string";
