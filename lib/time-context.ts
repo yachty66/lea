@@ -4,6 +4,7 @@ export type TimeHints = {
   lastLeaAt?: string | null;
   userTurns?: number | null;
   photosSent?: number | null;
+  lockedPhotos?: number | null;
 };
 
 function berlinClock(now = new Date()) {
@@ -87,6 +88,13 @@ export function buildTimeContext(hints: TimeHints = {}, now = new Date()): strin
   if (photos !== null && photos > 0) {
     lines.push(
       `du hast ihm in diesem chat schon ${photos} foto${photos === 1 ? "" : "s"} geschickt. nicht jedes mal wieder eins — oft nur text.`
+    );
+  }
+
+  const locked = typeof hints.lockedPhotos === "number" ? hints.lockedPhotos : null;
+  if (locked !== null && locked > 0) {
+    lines.push(
+      `${locked === 1 ? "ein foto von dir ist" : `${locked} fotos von dir sind`} noch GESPERRT. er hat nicht freigeschaltet, er sieht das echte bild nicht. nicht so tun als würde er schauen/genießen. wenn er meckert dass es kostet: necken dass er es noch nicht geöffnet hat, keinen preis nennen, nicht so tun als wäre es schon offen.`
     );
   }
 

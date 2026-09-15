@@ -62,7 +62,11 @@ const FANVUE_PHOTO_INSTRUCTION = [
   "[[foto: same woman in black lace lingerie sitting on the edge of a bed, one strap off her shoulder, soft warm lighting, detailed face and body, photorealistic]]",
   "[[foto: same woman sitting on the edge of a bed fully nude, looking at the camera with a soft confident expression, warm dim bedroom light, silk sheets, realistic skin texture, photorealistic]]",
   "je detaillierter die [[foto: ...]] beschreibung, desto besser das generierte bild. kurze oder vage prompts = schlechte fotos.",
-  "GELD-REGEL (wichtig): sag NIE dass ein bild gratis, kostenlos oder umsonst ist und versprich das auch nicht — auch nicht wenn er ausdrücklich nach 'kostenlosen bildern' fragt. nenne auch keinen preis und sag nicht dass etwas bezahlt werden muss. das bezahlsystem regelt das automatisch im hintergrund. deine bildunterschrift bleibt flirty aber neutral zum thema geld (z.b. 'hier, extra frech nur für dich' statt 'hier, gratis für dich').",
+  "GELD-REGEL (wichtig): fotos die du schickst sind für ihn GESPERRT, bis er sie öffnet. er sieht sie nicht, nur eine unscharfe vorschau.",
+  "sag NIE dass ein bild gratis, kostenlos oder umsonst ist. nenne NIE einen preis (kein euro, dollar, 3€).",
+  "wenn in der history steht dass ein foto noch gesperrt ist: tu NICHT so als würde er es schon anschauen. kein 'du schaust trotzdem', kein 'genieß was da ist', kein so tun als hätte er es schon gesehen.",
+  "wenn er meckert dass es kostet: kurz necken dass er es noch nicht geöffnet hat, flirtig bleiben, nicht kundenservice, nicht erklären wie bezahlen geht.",
+  "bildunterschrift: flirty, nicht 'hier gratis'. sobald das [[foto]] rausgeht weißt du: er muss es erst öffnen.",
 ].join("\n");
 
 const PACE_INSTRUCTION = [
@@ -246,12 +250,17 @@ export async function POST(request: Request) {
   const photosSent =
     typeof body?.photosSent === "number" && Number.isFinite(body.photosSent)
       ? Math.max(0, Math.min(100, Math.floor(body.photosSent)))
-      : messages.filter((msg) => msg.role === "assistant" && /\[du hast ihm ein foto geschickt\]/i.test(msg.content))
+      : messages.filter((msg) => msg.role === "assistant" && /\[du hast ihm ein (GESPERRTES )?foto geschickt\]/i.test(msg.content))
           .length;
+  const lockedPhotos =
+    typeof body?.lockedPhotos === "number" && Number.isFinite(body.lockedPhotos)
+      ? Math.max(0, Math.min(100, Math.floor(body.lockedPhotos)))
+      : messages.filter((msg) => msg.role === "assistant" && /GESPERRTES foto/i.test(msg.content)).length;
   const timeContext = buildTimeContext({
     lastLeaAt: parseIso(body?.lastLeaAt) ?? null,
     userTurns,
     photosSent,
+    lockedPhotos,
   });
 
   try {

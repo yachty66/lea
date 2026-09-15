@@ -47,13 +47,37 @@ type FanvueMessage = {
   hasMedia?: boolean | null;
   createdAt?: string | null;
   created_at?: string | null;
+  sentAt?: string | null;
+  price?: number | null;
+  pricing?: { USD?: { price?: number } } | null;
+  purchasedAt?: string | null;
+  purchased_at?: string | null;
 };
 
 function messageTime(m: FanvueMessage): string | undefined {
-  const raw = m.createdAt || m.created_at;
+  const raw = m.sentAt || m.createdAt || m.created_at;
   if (!raw) return undefined;
   const t = Date.parse(raw);
   return Number.isFinite(t) ? new Date(t).toISOString() : undefined;
+}
+
+function isPriced(m: FanvueMessage): boolean {
+  const cents = m.pricing?.USD?.price ?? m.price;
+  return typeof cents === "number" && cents > 0;
+}
+
+function isPurchased(m: FanvueMessage): boolean {
+  return !!(m.purchasedAt || m.purchased_at);
+}
+
+function outboundPhotoNote(m: FanvueMessage): string {
+  if (isPriced(m) && !isPurchased(m)) {
+    return "[du hast ihm ein GESPERRTES foto geschickt. er hat es NICHT freigeschaltet. er sieht nur eine unscharfe vorschau, nicht das echte bild. tu NICHT so als würde er es schon anschauen.]";
+  }
+  if (isPriced(m) && isPurchased(m)) {
+    return "[er hat dein foto freigeschaltet und sieht es jetzt.]";
+  }
+  return "[du hast ihm ein foto geschickt]";
 }
 
 let selfUuidCache: string | null = null;
@@ -149,8 +173,9 @@ async function reply(
     if (m.hasMedia && fromFan) {
       const desc = (await describeInbound(fanUuid, m.uuid, origin)) || "keine beschreibung verfügbar";
       content = `${content}\n[er schickt dir ein foto. darauf zu sehen: ${desc}]`.trim();
-    } else if (m.hasMedia && !fromFan && !content) {
-      content = "[du hast ihm ein foto geschickt]";
+    } else if (m.hasMedia && !fromFan) {
+      const note = outboundPhotoNote(m);
+      content = content ? `${content}\n${note}` : note;
     }
     if (!content) continue;
     history.push({ role: fromFan ? "user" : "assistant", content });
@@ -160,13 +185,16 @@ async function reply(
   const prior = ordered.slice(0, -1);
   const lastLeaMsg = [...prior].reverse().find((m) => m.sender?.uuid === me);
   const userTurns = history.filter((m) => m.role === "user").length;
-  const photosSent = ordered.filter((m) => m.sender?.uuid === me && m.hasMedia).length;
+  const myPhotos = ordered.filter((m) => m.sender?.uuid === me && m.hasMedia);
+  const photosSent = myPhotos.length;
+  const lockedPhotos = myPhotos.filter((m) => isPriced(m) && !isPurchased(m)).length;
 
   const result = await internal("/api/chat", origin, {
     messages: history,
     lastLeaAt: lastLeaMsg ? messageTime(lastLeaMsg) ?? null : null,
     userTurns,
     photosSent,
+    lockedPhotos,
   }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))));
   const text = (result.text ?? "").trim();
   const wantsPhoto = typeof result.photoPrompt === "string";
