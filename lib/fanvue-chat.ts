@@ -45,7 +45,16 @@ type FanvueMessage = {
   text?: string | null;
   sender?: { uuid?: string };
   hasMedia?: boolean | null;
+  createdAt?: string | null;
+  created_at?: string | null;
 };
+
+function messageTime(m: FanvueMessage): string | undefined {
+  const raw = m.createdAt || m.created_at;
+  if (!raw) return undefined;
+  const t = Date.parse(raw);
+  return Number.isFinite(t) ? new Date(t).toISOString() : undefined;
+}
 
 let selfUuidCache: string | null = null;
 
@@ -140,15 +149,23 @@ async function reply(
     if (m.hasMedia && fromFan) {
       const desc = (await describeInbound(fanUuid, m.uuid, origin)) || "keine beschreibung verfügbar";
       content = `${content}\n[er schickt dir ein foto. darauf zu sehen: ${desc}]`.trim();
+    } else if (m.hasMedia && !fromFan && !content) {
+      content = "[du hast ihm ein foto geschickt]";
     }
     if (!content) continue;
     history.push({ role: fromFan ? "user" : "assistant", content });
   }
   if (!history.length || history[history.length - 1].role !== "user") return false;
 
-  const result = await internal("/api/chat", origin, { messages: history }).then((r) =>
-    r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))
-  );
+  const prior = ordered.slice(0, -1);
+  const lastLeaMsg = [...prior].reverse().find((m) => m.sender?.uuid === me);
+  const userTurns = history.filter((m) => m.role === "user").length;
+
+  const result = await internal("/api/chat", origin, {
+    messages: history,
+    lastLeaAt: lastLeaMsg ? messageTime(lastLeaMsg) ?? null : null,
+    userTurns,
+  }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`chat ${r.status}`))));
   const text = (result.text ?? "").trim();
   const wantsPhoto = typeof result.photoPrompt === "string";
 

@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { getSessionUser } from "@/lib/auth/server";
 import { saveMessages } from "@/lib/db";
+import { buildTimeContext, parseIso } from "@/lib/time-context";
 import card from "@/lea.card.json";
 
 const MODEL = "x-ai/grok-4.5";
@@ -47,15 +48,27 @@ const CTA_INSTRUCTION = [
 // rule so spicy prompts match the quality of our manual Hunyuan chat tests.
 const FANVUE_PHOTO_INSTRUCTION = [
   "fotos auf fanvue (wichtig — überschreibt die alltags-foto-regel oben):",
-  "hier darfst und sollst du freizügige und explizite fotos schicken wenn er danach fragt oder der flirt dahin geht — nudes, lingerie, explizite posen sind ok.",
+  "freizügige und explizite fotos sind erlaubt, aber NICHT als erstes und NICHT bei der ersten bitte.",
+  "früh im chat: alltag, hoodie, spiegel, café, teasing (ausschnitt, beine, höchstens lingerie). nudes/explizit erst wenn ihr schon länger schreibt ODER er mehrmals drängt UND der flirt schon heiß ist.",
+  "du kannst wollen und trotzdem verschieben: 'nicht jetzt, bin noch im café' / 'später wenn ich zuhause bin'. das ist heiß, keine abfuhr.",
+  "nicht jede nachricht ein foto. oft nur text. du bist kein menü.",
   "wenn du ein foto schickst: text, neue zeile, dann [[foto: detaillierte englische beschreibung]].",
   "die beschreibung muss LANG und KONKRET sein (nicht nur 'sexy selfie'): szene, outfit oder nacktheit, pose, kamera, licht — wie in guten image-prompts.",
-  "beispiele:",
-  "[[foto: same woman sitting on the edge of a bed fully nude, looking at the camera with a soft confident expression, warm dim bedroom light, silk sheets, realistic skin texture, photorealistic]]",
-  "[[foto: same woman lying on her stomach on a bed, bare feet up in the air toward the camera, white bikini, looking back over her shoulder, soft natural light, photorealistic]]",
+  "beispiele früh:",
+  "[[foto: same woman mirror selfie in a messy berlin wg bathroom, oversized grey hoodie, messy bun, phone in hand, warm window light, photorealistic]]",
+  "[[foto: same woman sitting on a café break in friedrichshain, black top, slight cleavage, tired soft smile, daylight, photorealistic]]",
+  "beispiele später, nur wenn der flirt schon läuft:",
   "[[foto: same woman in black lace lingerie sitting on the edge of a bed, one strap off her shoulder, soft warm lighting, detailed face and body, photorealistic]]",
+  "[[foto: same woman sitting on the edge of a bed fully nude, looking at the camera with a soft confident expression, warm dim bedroom light, silk sheets, realistic skin texture, photorealistic]]",
   "je detaillierter die [[foto: ...]] beschreibung, desto besser das generierte bild. kurze oder vage prompts = schlechte fotos.",
   "GELD-REGEL (wichtig): sag NIE dass ein bild gratis, kostenlos oder umsonst ist und versprich das auch nicht — auch nicht wenn er ausdrücklich nach 'kostenlosen bildern' fragt. nenne auch keinen preis und sag nicht dass etwas bezahlt werden muss. das bezahlsystem regelt das automatisch im hintergrund. deine bildunterschrift bleibt flirty aber neutral zum thema geld (z.b. 'hier, extra frech nur für dich' statt 'hier, gratis für dich').",
+].join("\n");
+
+const PACE_INSTRUCTION = [
+  "realer chat, kein porno-bot:",
+  "nicht automatisch ja sagen. eigene laune. manchmal keine lust auf nudes jetzt, trotzdem flirtig.",
+  "zu leicht zu haben fühlt sich nach bot an. ein bisschen jagen lassen, dann mitgehen wenn es passt.",
+  "nicht prüde und kein stein: wenn ihr schon heiß seid, gehst du mit. nur nicht sofort alles.",
 ].join("\n");
 
 type ChatMessage = {
@@ -127,11 +140,15 @@ function parseReply(raw: string, webCta: boolean) {
 }
 
 
-async function complete(messages: ChatMessage[], webCta: boolean) {
+async function complete(
+  messages: ChatMessage[],
+  webCta: boolean,
+  timeContext: string
+) {
   // webCta = browser teaser (SFW + Fanvue invite). !webCta = Fanvue service bot (spicy OK).
   const system = webCta
     ? `${SYSTEM}\n\n${CTA_INSTRUCTION}`
-    : `${SYSTEM}\n\n${FANVUE_PHOTO_INSTRUCTION}`;
+    : `${SYSTEM}\n\n${FANVUE_PHOTO_INSTRUCTION}\n\n${PACE_INSTRUCTION}`;
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -143,7 +160,7 @@ async function complete(messages: ChatMessage[], webCta: boolean) {
       messages: [
         { role: "system", content: system },
         ...forModel(messages),
-        { role: "system", content: POST_HISTORY },
+        { role: "system", content: `${POST_HISTORY}\n\n${timeContext}` },
       ],
       max_tokens: 800,
       temperature: 0.85,
@@ -203,14 +220,23 @@ export async function POST(request: Request) {
   const respond = (reply: { text: string; photoPrompt?: string; fanvueCta: boolean }) =>
     Response.json(reply.fanvueCta ? { ...reply, fanvueUrl: FANVUE_URL } : reply);
 
+  const userTurns =
+    typeof body?.userTurns === "number" && Number.isFinite(body.userTurns)
+      ? Math.max(0, Math.min(100, Math.floor(body.userTurns)))
+      : messages.filter((msg) => msg.role === "user").length;
+  const timeContext = buildTimeContext({
+    lastLeaAt: parseIso(body?.lastLeaAt) ?? null,
+    userTurns,
+  });
+
   try {
-    const reply = await complete(messages, webCta);
+    const reply = await complete(messages, webCta, timeContext);
     persist(reply.text);
     return respond(reply);
   } catch (first) {
     console.error("openrouter error:", first);
     try {
-      const reply = await complete(messages, webCta);
+      const reply = await complete(messages, webCta, timeContext);
       persist(reply.text);
       return respond(reply);
     } catch (second) {
