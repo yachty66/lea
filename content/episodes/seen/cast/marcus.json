@@ -1,0 +1,13 @@
+{
+  "who": "marcus",
+  "prompt": "keep the first character's face, hair, mustache and proportions exactly: the same man, swept-back purple hair, purple mustache, angular low-poly face. use exactly the art style of the last image: muted colors, everything low poly faceted, no outlines. vertical 9:16 full-body character portrait, dark studio, single spotlight, standing, three-quarter view, one man only, no text, no extra people. dress him as a young founder: long purple coat, black turtleneck, dark trousers, black belt, purple shoes, a watch on his left wrist. expression flat, calculating, chin slightly down, one hand adjusting the watch. no earring.",
+  "refs": [
+    "content/_types/intj.png",
+    "content/car-lost/frame.png"
+  ],
+  "url": "https://v3b.fal.media/files/b/0aaaabdc/62oZ3jcR7JcK6nB61ctpc_WHbQul4n.png",
+  "requestId": "01a0aad9-367f-7c63-9d29-3e148c20c5a2",
+  "seconds": 34.49,
+  "quality": "xhigh",
+  "model": "openai/gpt-image-2.5/flare/edit"
+}
