@@ -24,11 +24,11 @@ The man with swept-back purple hair and a purple mustache speaks, flat impatient
 The man in the green suit speaks again, hurt firm male voice: "Then we ship it. Together. That was the deal from night one."
 no other voices. Quiet common room, a chair creak, no music, no subtitles.
 
-## Clip 4 (image: the man with the purple mustache signing the last page, the man in the green suit reaching for the folder too late, the man with the loosened tie already smiling, three men only)
+## Clip 4 (image: close three-shot, the man with the purple mustache has just signed the last page, the man in the green suit grabbing for the paper, the man with the loosened tie already sliding the signed folder to his own chest, Marcus looking at the desk not at Elias, three men only, no title text)
 Video prompt:
 Keep the characters and setting exactly as in the image. Static camera.
-The man with black curtain hair and a green suit speaks, tight urgent male voice, reaching for the pages: "Stop. Let me read it first."
-The man with swept-back purple hair and a purple mustache speaks, flat signing male voice, not looking up: "I know what it says. Later."
-The man in the green suit speaks again, hurt sharp male voice: "That is not later. That is you deciding."
-The man with short purple hair and a loosened tie speaks, easy smiling male voice, picking up the signed folder: "He can read it on the plane."
-no other voices. Pen on paper, then a folder closing, no music, no subtitles.
+The man with black curtain hair and a green suit speaks, tight pleading male voice, grabbing for the paper: "Stop. That last page is ours. Give it to me."
+The man with swept-back purple hair and a purple mustache speaks, flat signing male voice, sliding the page to the man with the tie, never looking up: "I chose."
+The man in the green suit speaks again, hurt stuck male voice, frozen mid-reach: "Chose what. Look at me."
+The man with short purple hair and a loosened tie speaks, easy quiet male voice, closing the folder against his chest: "Ask him after it files."
+no other voices. Pen set down, folder closing, then a hard silence, no music, no subtitles.
